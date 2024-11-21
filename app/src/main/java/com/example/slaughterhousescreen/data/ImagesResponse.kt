@@ -1,0 +1,10 @@
+package com.example.slaughterhousescreen.data
+
+import com.google.gson.annotations.SerializedName
+
+data class ImagesResponse(
+    @SerializedName("logo_Client"  ) var logoClient  : String? = null,
+    @SerializedName("logo_Default" ) var logoDefault : String? = null,
+    @SerializedName("language" ) var language : String? = null,
+
+    )
