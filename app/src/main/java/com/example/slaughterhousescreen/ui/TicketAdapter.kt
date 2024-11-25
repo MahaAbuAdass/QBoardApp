@@ -18,7 +18,6 @@ class TicketAdapter(
     inner class ItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val status: TextView = itemView.findViewById(R.id.cell_status)
         val ticketNumber: TextView = itemView.findViewById(R.id.cell_ticket_number)
-        val statusAr : TextView = itemView.findViewById(R.id.cell_status_ar)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
@@ -33,14 +32,12 @@ class TicketAdapter(
     override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
         if (position < currentQList.size) {
             val item = currentQList[position]
-            holder.status.text = item?.QNameEn
-            holder.statusAr.text = item?.QNameAr
+            holder.status.text = item?.CounterId.toString()
             holder.ticketNumber.text = item?.TicketNo ?: " "
         } else {
             // If no data, set empty values or keep them as placeholders
-            holder.statusAr.text = "-"
-            val paddingValue = 3
-            holder.statusAr.setPadding(paddingValue, paddingValue, paddingValue, paddingValue)
+
+            holder.status.text = " \n -" // Keeps the layout even if empty
 
             holder.status.textSize = 19f // Set text size in SP (e.g., 20f for 20sp)
 

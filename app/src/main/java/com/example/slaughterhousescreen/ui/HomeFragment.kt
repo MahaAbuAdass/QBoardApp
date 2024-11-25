@@ -3,15 +3,12 @@ package com.example.slaughterhousescreen.ui
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
-import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.graphics.drawable.Drawable
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.speech.tts.TextToSpeech
-import android.speech.tts.Voice
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -23,7 +20,6 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
@@ -46,11 +42,8 @@ import kotlinx.coroutines.launch
 
 
 import com.bumptech.glide.request.target.Target
-import com.example.slaughterhousescreen.data.CurrentTicket
+import com.example.slaughterhousescreen.viewmodel.CurrentTimeViewModel
 import com.example.slaughterhousescreen.viewmodel.GetImagesViewModel
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class HomeFragment : Fragment() {
 
@@ -59,6 +52,7 @@ class HomeFragment : Fragment() {
     private lateinit var currentQViewModel: GetCurrentQViewModel
     private lateinit var currentTicketViewModel: CurrentTicketViewModel
     private lateinit var getImagesViewModel: GetImagesViewModel
+    private lateinit var getCurrentTimeViewModel: CurrentTimeViewModel
 
     private var language: String? = null
 
@@ -71,7 +65,6 @@ class HomeFragment : Fragment() {
 
     private val englishAudioQueue: MutableList<Int> = mutableListOf()
 
-    private val timehandler = Handler(Looper.getMainLooper())
 
 
 //    private val screenHandler = Handler()
@@ -79,6 +72,7 @@ class HomeFragment : Fragment() {
 
     private val handler = Handler()
     private val refreshInterval = 5000L // 5 seconds
+
 
     private val scrollMsgsHandler = Handler()
     private val scrollMsgsRefreshInterval = 600000L // 10 minutes
@@ -104,6 +98,17 @@ class HomeFragment : Fragment() {
                 this,
                 scrollMsgsRefreshInterval
             ) // Schedule next execution
+        }
+    }
+
+    private val timeRefreshHandler = Handler()
+    private val timeRefreshInterval = 60000L // 1 minute (60,000 milliseconds)
+
+    // New runnable for refreshing the current time API
+    private val timeRefreshRunnable = object : Runnable {
+        override fun run() {
+            callCurrentTimeApi() // Call the current time API every 1 minute
+            timeRefreshHandler.postDelayed(this, timeRefreshInterval) // Schedule next execution
         }
     }
 
@@ -155,6 +160,15 @@ class HomeFragment : Fragment() {
         getImagesViewModel =
             ViewModelProvider(this, getImagesFactory).get(GetImagesViewModel::class.java)
 
+
+        val getTimeFactory = GenericViewModelFactory(CurrentTimeViewModel::class) {
+            CurrentTimeViewModel(requireContext())
+        }
+        getCurrentTimeViewModel =
+            ViewModelProvider(this, getTimeFactory).get(CurrentTimeViewModel::class.java)
+
+
+
         callGetImagesApi()
         observerGetImagesViewModel()
         callCurrentTicketApi()
@@ -163,6 +177,9 @@ class HomeFragment : Fragment() {
         observerCallCurrentQApi()
         callGetScrollMsgsApi()
         observerScrollMsgsViewModel()
+        callCurrentTimeApi()
+        observerCurrentTimeViewModel()
+
 
         setupMarquee(arabicTextView, true , 55000L)   // Arabic text (right to left)
         setupMarquee(englishTextView, false,45000L)
@@ -180,40 +197,61 @@ class HomeFragment : Fragment() {
             findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToFirstFragment())
         }
 
-        getCurrentDateAndTime()
+      //  getCurrentDateAndTime()
 
         handler.post(runnable) // Start the auto-refresh for APIs
+
+
   //      screenHandler.post(runnable) // Start the screen refresh
 
         startMarqueeApiCall() // Start calling the marquee API every 10 minutes
 
     }
 
+    private fun observerCurrentTimeViewModel() {
+
+        getCurrentTimeViewModel.timeResponse.observe(viewLifecycleOwner){timeResponse->
+            binding.tvTime.text = timeResponse.msgEn
+        }
+
+
+        getCurrentTimeViewModel.errorResponse.observe(viewLifecycleOwner) {
+           Log.v("error","error")
+        }
+
+    }
+
+    private fun callCurrentTimeApi() {
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+            getCurrentTimeViewModel.getCurrentTime()
+        }    }
+
     private fun startMarqueeApiCall() {
         scrollMsgsHandler.post(scrollMsgsRunnable) // Start the marquee API refresh loop
     }
 
-    private fun getCurrentDateAndTime() {
-        timehandler.post(object : Runnable {
-            override fun run() {
-                // Get the current date and time
-                val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                val currentDate = dateFormat.format(Date())
-                binding.tvDate.text = currentDate
-
-                val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
-                val currentTime = timeFormat.format(Date())
-                binding.tvTime.text = currentTime
-
-                // Re-run this runnable every second (1000 ms)
-                handler.postDelayed(this, 1000)
-            }
-        })
-    }
+//    private fun getCurrentDateAndTime() {
+//        timehandler.post(object : Runnable {
+//            override fun run() {
+//                // Get the current date and time
+//                val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+//                val currentDate = dateFormat.format(Date())
+//             //   binding.tvDate.text = currentDate
+//
+//                val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+//                val currentTime = timeFormat.format(Date())
+//                binding.tvTime.text = currentTime
+//
+//                // Re-run this runnable every second (1000 ms)
+//                handler.postDelayed(this, 1000)
+//            }
+//        })
+//    }
 
     override fun onStart() {
         super.onStart()
         handler.post(runnable) // Start the auto-refresh when fragment is visible
+        timeRefreshHandler.postDelayed(timeRefreshRunnable, timeRefreshInterval) // Start time refresh
   //      screenHandler.post(runnable) // Start the auto-refresh when fragment is visible
 
         scrollMsgsHandler.post(scrollMsgsRunnable) // Start the scroll messages refresh every 10 minutes
@@ -274,13 +312,13 @@ class HomeFragment : Fragment() {
                 .signature(ObjectKey(System.currentTimeMillis().toString())) // Force reload
                 .into(binding.logo)
 
-            Glide.with(requireContext())
-                .load(images.logoClient)
-                .skipMemoryCache(true) // Skip memory caching
-                .diskCacheStrategy(DiskCacheStrategy.NONE) // Skip disk caching
-                .signature(ObjectKey(System.currentTimeMillis().toString())) // Force reload
-                .load(images.logoDefault)
-                .into(binding.imgCurrent)
+//            Glide.with(requireContext())
+//                .load(images.logoClient)
+//                .skipMemoryCache(true) // Skip memory caching
+//                .diskCacheStrategy(DiskCacheStrategy.NONE) // Skip disk caching
+//                .signature(ObjectKey(System.currentTimeMillis().toString())) // Force reload
+//                .load(images.logoDefault)
+//                .into(binding.imgCurrent)
 
             Log.v("imagesssss", images.logoDefault ?: "")
 
@@ -344,36 +382,36 @@ class HomeFragment : Fragment() {
             // Log the image path
             Log.d("ImagePath", currentTicket.Path ?: "")
 
-            binding.imgCurrent.setImageResource(R.drawable.placeholder) // Set placeholder
+         //   binding.imgCurrent.setImageResource(R.drawable.placeholder) // Set placeholder
 
-            Glide.with(this)
-                .load(currentTicket.Path)
-                .skipMemoryCache(true) // Skip memory caching
-                .diskCacheStrategy(DiskCacheStrategy.NONE) // Skip disk caching
-                .signature(ObjectKey(System.currentTimeMillis().toString())) // Force reload
-                .listener(object : RequestListener<Drawable> {
-                    override fun onLoadFailed(
-                        e: GlideException?,
-                        model: Any?,
-                        target: Target<Drawable>?,
-                        isFirstResource: Boolean
-                    ): Boolean {
-                        Log.e("GlideError", "Failed to load image", e)
-                        return false // Return false to let Glide handle the error
-                    }
-
-                    override fun onResourceReady(
-                        resource: Drawable?,
-                        model: Any?,
-                        target: Target<Drawable>?,
-                        dataSource: DataSource,
-                        isFirstResource: Boolean
-                    ): Boolean {
-                        Log.d("GlideSuccess", "Image loaded successfully")
-                        return false // Return false to let Glide continue handling the resource
-                    }
-                })
-                .into(binding.imgCurrent)
+//            Glide.with(this)
+//                .load(currentTicket.Path)
+//                .skipMemoryCache(true) // Skip memory caching
+//                .diskCacheStrategy(DiskCacheStrategy.NONE) // Skip disk caching
+//                .signature(ObjectKey(System.currentTimeMillis().toString())) // Force reload
+//                .listener(object : RequestListener<Drawable> {
+//                    override fun onLoadFailed(
+//                        e: GlideException?,
+//                        model: Any?,
+//                        target: Target<Drawable>?,
+//                        isFirstResource: Boolean
+//                    ): Boolean {
+//                        Log.e("GlideError", "Failed to load image", e)
+//                        return false // Return false to let Glide handle the error
+//                    }
+//
+//                    override fun onResourceReady(
+//                        resource: Drawable?,
+//                        model: Any?,
+//                        target: Target<Drawable>?,
+//                        dataSource: DataSource,
+//                        isFirstResource: Boolean
+//                    ): Boolean {
+//                        Log.d("GlideSuccess", "Image loaded successfully")
+//                        return false // Return false to let Glide continue handling the resource
+//                    }
+//                })
+//                .into(binding.imgCurrent)
 
         }
     }
@@ -580,8 +618,8 @@ class HomeFragment : Fragment() {
 
         audioQueue.clear()
         audioQueue.add(R.raw.doorbell)
-      //  audioQueue.add(R.raw.ticketar)
-        audioQueue.add(R.raw.artkt)
+       audioQueue.add(R.raw.ticketar)
+       // audioQueue.add(R.raw.artkt)
 
         // ticket character
         val ticketId = resources.getIdentifier(firstChar, "raw", requireContext().packageName)
@@ -671,21 +709,21 @@ class HomeFragment : Fragment() {
 
             }
         }
-        audioQueue.add(R.raw.collectionarea)
+       // audioQueue.add(R.raw.collectionarea)
 
-   //     audioQueue.add(R.raw.arabic)
+      audioQueue.add(R.raw.arabic)
 
-//        if (counterIdAudio != null) {
-//            if (counterIdAudio < 100) {
-//                val counterAudioFileName = "ar$counterIdAudio"
-//                val counterResourceId = resources.getIdentifier(
-//                    counterAudioFileName,
-//                    "raw",
-//                    requireContext().packageName
-//                )
-//                audioQueue.add(counterResourceId)
-//            }
-//        }
+        if (counterIdAudio != null) {
+            if (counterIdAudio < 100) {
+                val counterAudioFileName = "ar$counterIdAudio"
+                val counterResourceId = resources.getIdentifier(
+                    counterAudioFileName,
+                    "raw",
+                    requireContext().packageName
+                )
+                audioQueue.add(counterResourceId)
+            }
+        }
 
         // Start playing the first audio if queue is not empty
         if (audioQueue.isNotEmpty()) {
@@ -795,7 +833,9 @@ class HomeFragment : Fragment() {
 
     override fun onStop() {
         super.onStop()
-        handler.removeCallbacks(runnable) // Stop the auto-refresh when fragment is not visible
+        handler.removeCallbacks(runnable)
+        timeRefreshHandler.removeCallbacks(timeRefreshRunnable) // Stop time refresh
+        // Stop the auto-refresh when fragment is not visible
     //    screenHandler.removeCallbacks(runnable) // Stop the auto-refresh when fragment is not visible
 
         scrollMsgsHandler.removeCallbacks(scrollMsgsRunnable) // Stop the scroll messages refresh
@@ -804,7 +844,7 @@ class HomeFragment : Fragment() {
     override fun onDestroy() {
         super.onDestroy()
         // Remove any pending callbacks to avoid memory leaks
-        timehandler.removeCallbacksAndMessages(null)
+    //    timehandler.removeCallbacksAndMessages(null)
         scrollMsgsHandler.removeCallbacksAndMessages(null)
 
     }

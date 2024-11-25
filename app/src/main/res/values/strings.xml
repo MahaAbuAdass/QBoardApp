@@ -1,6 +1,9 @@
 <resources>
 <!--    <string name="app_name">SlaughterHouseScreen</string>-->
-    <string name="app_name">Aman-Status</string>
+<!--    <string name="app_name">Aman-Status</string>-->
+
+    <string name="app_name"> Aman QBoard</string>
+
 
     <!--    <string name="app_name">Sharjah Police QMS</string>-->
 

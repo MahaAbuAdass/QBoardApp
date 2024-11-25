@@ -13,15 +13,11 @@
         app:strokeColor="@color/white"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="4"
+        android:layout_weight="2.5"
         app:cardBackgroundColor="@color/white"
         app:cardCornerRadius="8dp"
        >
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            >
             <TextView
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -30,29 +26,13 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:id="@+id/cell_status"
-                android:padding="3.75dp"
-                tools:text="status of the order"
+                android:padding="8dp"
+                tools:text="ticket #"
                 android:textColor="@color/green"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textSize="36sp"
+                android:textStyle="bold"
 
-            <TextView
-                app:layout_constraintTop_toBottomOf="@id/cell_status"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:id="@+id/cell_status_ar"
-                android:padding="3.7dp"
-                tools:text="status of the order"
-                android:textColor="@color/green"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
+                />
 
 
     </com.google.android.material.card.MaterialCardView>
@@ -61,11 +41,10 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_marginStart="5dp"
-        android:layout_weight="1"
+        android:layout_weight="2.5"
         app:cardBackgroundColor="@color/white"
         app:cardCornerRadius="8dp"
         app:strokeColor="@color/white"
-
         >
 
         <TextView
@@ -77,8 +56,10 @@
             android:padding="8dp"
             tools:text="ticket #"
             android:textColor="@color/green"
-            android:textSize="30sp"
-            android:textStyle="bold" />
+            android:textSize="36sp"
+            android:textStyle="bold"
+
+            />
     </com.google.android.material.card.MaterialCardView>
 
 

@@ -28,29 +28,30 @@
                 android:id="@+id/tv_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="10dp"
                 android:layout_marginBottom="5dp"
                 android:textColor="@color/green"
                 android:textSize="36sp"
                 android:textStyle="bold"
-                app:layout_constraintEnd_toEndOf="@id/tv_date"
-                app:layout_constraintStart_toStartOf="@id/tv_date"
+
+                android:layout_marginStart="10dp"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="10:10:10" />
 
-            <TextView
-                android:id="@+id/tv_date"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:layout_marginEnd="10dp"
-                android:textColor="#9002A800"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tv_time"
-                tools:text="10/10/2024"
-                />
+<!--            <TextView-->
+<!--                android:id="@+id/tv_date"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginStart="20dp"-->
+<!--                android:layout_marginEnd="10dp"-->
+<!--                android:textColor="#9002A800"-->
+<!--                android:textSize="24sp"-->
+<!--                android:textStyle="bold"-->
+<!--                app:layout_constraintStart_toStartOf="parent"-->
+<!--                app:layout_constraintTop_toBottomOf="@id/tv_time"-->
+<!--                tools:text="10/10/2024"-->
+<!--                />-->
 
 
 
@@ -94,7 +95,7 @@
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="0.8"
+            android:layout_weight="1"
             android:orientation="vertical">
 
             <LinearLayout
@@ -196,7 +197,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_marginStart="5dp"
-            android:layout_weight="1.2"
+            android:layout_weight="1"
             android:orientation="horizontal"
             android:weightSum="5">
 
@@ -206,7 +207,7 @@
                 android:layout_width="0dp"
                 app:strokeColor="@color/green"
                 android:layout_height="match_parent"
-                android:layout_weight="4"
+                android:layout_weight="2.5"
                 app:cardBackgroundColor="@color/green"
                 app:cardCornerRadius="8dp">
 
@@ -217,9 +218,9 @@
                     android:layout_gravity="center"
                     android:gravity="center"
                     android:padding="4dp"
-                    android:text="Ticket Status / حالة التذكرة"
+                    android:text="Counter / شباك"
                     android:textColor="@color/white"
-                    android:textSize="27sp"
+                    android:textSize="25sp"
                     android:textStyle="bold" />
             </com.google.android.material.card.MaterialCardView>
 
@@ -229,7 +230,7 @@
                 android:layout_height="match_parent"
                 android:layout_marginStart="5dp"
                 app:strokeColor="@color/green"
-                android:layout_weight="1"
+                android:layout_weight="2.5"
                 app:cardBackgroundColor="@color/green"
                 app:cardCornerRadius="8dp">
 
@@ -238,9 +239,10 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:gravity="center"
-                    android:text="رقم التذكرة\nTicket #"
+                    android:padding="4dp"
+                    android:text="رقم التذكرة / #Ticket "
                     android:textColor="@color/white"
-                    android:textSize="18sp"
+                    android:textSize="25sp"
                     android:textStyle="bold" />
             </com.google.android.material.card.MaterialCardView>
 
@@ -267,7 +269,7 @@
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="0.8"
+            android:layout_weight="1"
             android:gravity="top">
 
 
@@ -275,12 +277,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="top"
-                android:layout_weight="0.8"
+                android:layout_weight="1"
                 app:strokeColor="@null"
                 app:cardCornerRadius="8dp"
                 >
 
                 <ImageView
+                    android:src="@drawable/police"
                     android:id="@+id/img_current"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -298,7 +301,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_marginStart="5dp"
-            android:layout_weight="1.2"
+            android:layout_weight="1"
             android:orientation="horizontal"
             android:weightSum="5">
 

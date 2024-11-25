@@ -4,6 +4,7 @@ import com.example.slaughterhousescreen.data.CurrentQ
 import com.example.slaughterhousescreen.data.CurrentTicket
 import com.example.slaughterhousescreen.data.ImagesResponse
 import com.example.slaughterhousescreen.data.ScrollMessages
+import com.example.slaughterhousescreen.data.TimeResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -19,9 +20,9 @@ interface ApiService {
     ): ScrollMessages
 
 
-    @GET("api/AndriodGetCurrentQ")
+    @GET("api/GetCurrentQAnd")
     suspend fun getCurrentQ(
-        @Query("branchcode") branchcode: String
+        @Query("BranchCode") BranchCode: String
     ) : List<CurrentQ>
 
     @GET("api/AndriodGetCurrentCalled")
@@ -37,6 +38,8 @@ interface ApiService {
     ) : ImagesResponse
 
 
-
+    @GET("api/Get_Current_Time")
+    suspend fun getCurrentTime(
+    ) : TimeResponse
 
 }
