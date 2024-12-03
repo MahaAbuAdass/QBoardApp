@@ -206,6 +206,16 @@ class HomeFragment : Fragment() {
 
         startMarqueeApiCall() // Start calling the marquee API every 10 minutes
 
+
+//        val videoView = binding.videoView
+//        val videoUrl = "http://192.168.30.50/APIPub2509/Video/Test.mp4"
+//
+//        videoView.setVideoPath(videoUrl)
+//        videoView.setOnPreparedListener { mediaPlayer ->
+//            mediaPlayer.isLooping = true // Enable infinite loop
+//            mediaPlayer.start()
+//        }
+
     }
 
     private fun observerCurrentTimeViewModel() {
@@ -312,13 +322,13 @@ class HomeFragment : Fragment() {
                 .signature(ObjectKey(System.currentTimeMillis().toString())) // Force reload
                 .into(binding.logo)
 
-//            Glide.with(requireContext())
-//                .load(images.logoClient)
-//                .skipMemoryCache(true) // Skip memory caching
-//                .diskCacheStrategy(DiskCacheStrategy.NONE) // Skip disk caching
-//                .signature(ObjectKey(System.currentTimeMillis().toString())) // Force reload
-//                .load(images.logoDefault)
-//                .into(binding.imgCurrent)
+            Glide.with(requireContext())
+                .load(images.logoClient)
+                .skipMemoryCache(true) // Skip memory caching
+                .diskCacheStrategy(DiskCacheStrategy.NONE) // Skip disk caching
+                .signature(ObjectKey(System.currentTimeMillis().toString())) // Force reload
+                .load(images.logoDefault)
+                .into(binding.imgCurrent)
 
             Log.v("imagesssss", images.logoDefault ?: "")
 

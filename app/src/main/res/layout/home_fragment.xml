@@ -8,17 +8,17 @@
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/first_card"
-        android:layout_marginTop="5dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="5dp"
+        android:layout_marginTop="5dp"
         android:layout_marginEnd="5dp"
         app:cardBackgroundColor="@color/white"
         app:cardCornerRadius="8dp"
-        app:strokeColor="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:strokeColor="@color/white">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -28,32 +28,30 @@
                 android:id="@+id/tv_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="5dp"
                 android:textColor="@color/green"
                 android:textSize="36sp"
-                android:textStyle="bold"
 
-                android:layout_marginStart="10dp"
+                android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="10:10:10" />
 
-<!--            <TextView-->
-<!--                android:id="@+id/tv_date"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:layout_marginStart="20dp"-->
-<!--                android:layout_marginEnd="10dp"-->
-<!--                android:textColor="#9002A800"-->
-<!--                android:textSize="24sp"-->
-<!--                android:textStyle="bold"-->
-<!--                app:layout_constraintStart_toStartOf="parent"-->
-<!--                app:layout_constraintTop_toBottomOf="@id/tv_time"-->
-<!--                tools:text="10/10/2024"-->
-<!--                />-->
-
-
+            <!--            <TextView-->
+            <!--                android:id="@+id/tv_date"-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                android:layout_marginStart="20dp"-->
+            <!--                android:layout_marginEnd="10dp"-->
+            <!--                android:textColor="#9002A800"-->
+            <!--                android:textSize="24sp"-->
+            <!--                android:textStyle="bold"-->
+            <!--                app:layout_constraintStart_toStartOf="parent"-->
+            <!--                app:layout_constraintTop_toBottomOf="@id/tv_time"-->
+            <!--                tools:text="10/10/2024"-->
+            <!--                />-->
 
 
             <ImageView
@@ -132,60 +130,60 @@
                     android:id="@+id/card_name"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:layout_weight="2.5"
                     android:layout_marginStart="5dp"
+                    android:layout_weight="2.5"
                     app:cardBackgroundColor="@color/white"
-                    app:strokeColor="@color/white"
-                    app:cardCornerRadius="8dp">
+                    app:cardCornerRadius="8dp"
+                    app:strokeColor="@color/white">
 
-<!--                    <LinearLayout-->
-<!--                        android:layout_width="match_parent"-->
-<!--                        android:layout_height="match_parent"-->
-<!--                        android:orientation="horizontal"-->
-<!--                        android:layout_gravity="center"-->
-<!--                        android:gravity="center"-->
-<!--                        android:weightSum="3"-->
-<!--                        >-->
+                    <!--                    <LinearLayout-->
+                    <!--                        android:layout_width="match_parent"-->
+                    <!--                        android:layout_height="match_parent"-->
+                    <!--                        android:orientation="horizontal"-->
+                    <!--                        android:layout_gravity="center"-->
+                    <!--                        android:gravity="center"-->
+                    <!--                        android:weightSum="3"-->
+                    <!--                        >-->
 
-<!--                        <com.google.android.material.card.MaterialCardView-->
-<!--                            android:id="@+id/card_ticket_number"-->
-<!--                            android:layout_width="0dp"-->
-<!--                            android:layout_height="match_parent"-->
-<!--                            android:layout_weight="1.5"-->
-<!--                            app:cardBackgroundColor="#2602A800"-->
-<!--                            app:cardCornerRadius="8dp"-->
-<!--                            app:strokeColor="#2602A800"-->
-<!--                            >-->
+                    <!--                        <com.google.android.material.card.MaterialCardView-->
+                    <!--                            android:id="@+id/card_ticket_number"-->
+                    <!--                            android:layout_width="0dp"-->
+                    <!--                            android:layout_height="match_parent"-->
+                    <!--                            android:layout_weight="1.5"-->
+                    <!--                            app:cardBackgroundColor="#2602A800"-->
+                    <!--                            app:cardCornerRadius="8dp"-->
+                    <!--                            app:strokeColor="#2602A800"-->
+                    <!--                            >-->
 
-                            <TextView
-                                android:id="@+id/title_current"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center"
-                                android:text="-"
-                                android:gravity="center"
-                                android:textColor="@color/green"
-                                android:textSize="35sp"
-                                android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/title_current"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:text="-"
+                        android:textColor="@color/green"
+                        android:textSize="35sp"
+                        android:textStyle="bold" />
 
-<!--                        </com.google.android.material.card.MaterialCardView>-->
+                    <!--                        </com.google.android.material.card.MaterialCardView>-->
 
 
-<!--                        <TextView-->
-<!--                            android:id="@+id/title_current_2"-->
-<!--                            android:layout_width="0dp"-->
-<!--                            android:layout_height="wrap_content"-->
-<!--                            android:layout_gravity="center"-->
-<!--                            android:layout_weight="1.5"-->
-<!--                            android:layout_marginTop="2dp"-->
-<!--                            android:layout_marginBottom="2dp"-->
-<!--                            android:gravity="center"-->
-<!--                            android:layout_marginEnd="3dp"-->
-<!--                            android:text="تذكرة / Ticket "-->
-<!--                            android:textColor="@color/green"-->
-<!--                            android:textSize="27sp"-->
-<!--                            android:textStyle="bold" />-->
-<!--                    </LinearLayout>-->
+                    <!--                        <TextView-->
+                    <!--                            android:id="@+id/title_current_2"-->
+                    <!--                            android:layout_width="0dp"-->
+                    <!--                            android:layout_height="wrap_content"-->
+                    <!--                            android:layout_gravity="center"-->
+                    <!--                            android:layout_weight="1.5"-->
+                    <!--                            android:layout_marginTop="2dp"-->
+                    <!--                            android:layout_marginBottom="2dp"-->
+                    <!--                            android:gravity="center"-->
+                    <!--                            android:layout_marginEnd="3dp"-->
+                    <!--                            android:text="تذكرة / Ticket "-->
+                    <!--                            android:textColor="@color/green"-->
+                    <!--                            android:textSize="27sp"-->
+                    <!--                            android:textStyle="bold" />-->
+                    <!--                    </LinearLayout>-->
                 </com.google.android.material.card.MaterialCardView>
 
             </LinearLayout>
@@ -205,11 +203,11 @@
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/card_2_num"
                 android:layout_width="0dp"
-                app:strokeColor="@color/green"
                 android:layout_height="match_parent"
                 android:layout_weight="2.5"
                 app:cardBackgroundColor="@color/green"
-                app:cardCornerRadius="8dp">
+                app:cardCornerRadius="8dp"
+                app:strokeColor="@color/green">
 
 
                 <TextView
@@ -229,10 +227,10 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_marginStart="5dp"
-                app:strokeColor="@color/green"
                 android:layout_weight="2.5"
                 app:cardBackgroundColor="@color/green"
-                app:cardCornerRadius="8dp">
+                app:cardCornerRadius="8dp"
+                app:strokeColor="@color/green">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -253,7 +251,7 @@
     <LinearLayout
         android:id="@+id/layout_9"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="340dp"
         android:layout_marginStart="5dp"
         android:layout_marginTop="7dp"
         android:layout_marginEnd="5dp"
@@ -264,7 +262,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/first_layout">
-
 
         <LinearLayout
             android:layout_width="0dp"
@@ -282,8 +279,9 @@
                 app:cardCornerRadius="8dp"
                 >
 
+
+<!--                    android:src="@drawable/police"-->
                 <ImageView
-                    android:src="@drawable/police"
                     android:id="@+id/img_current"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -323,53 +321,52 @@
         android:layout_marginEnd="5dp"
         app:cardBackgroundColor="@color/white"
         app:cardCornerRadius="8dp"
-        app:strokeColor="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-      >
+        app:strokeColor="@color/white">
 
-    <LinearLayout
-        android:id="@+id/marquee_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/white"
-        android:gravity="center"
-        android:orientation="vertical"
-
-        >
-
-        <TextView
-            android:id="@+id/englishText"
+        <LinearLayout
+            android:id="@+id/marquee_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:ellipsize="marquee"
-            android:paddingStart="5dp"
-            android:paddingEnd="5dp"
-            android:singleLine="true"
-            android:textColor="@color/black"
-            android:textSize="18sp"
-            tools:text="This is a long example of English text that is designed to scroll continuously from left to right" />
+            android:background="@color/white"
+            android:gravity="center"
+            android:orientation="vertical"
+
+            >
+
+            <TextView
+                android:id="@+id/englishText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:ellipsize="marquee"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp"
+                android:singleLine="true"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                tools:text="This is a long example of English text that is designed to scroll continuously from left to right" />
 
 
-        <TextView
-            android:id="@+id/arabicText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:ellipsize="marquee"
-            android:padding="1dp"
-            android:paddingStart="5dp"
-            android:paddingEnd="5dp"
-            android:singleLine="true"
-            android:textColor="@color/black"
-            android:textSize="18sp"
-            app:layout_constraintBottom_toTopOf="@id/marquee_layout"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            tools:text="هذا مثال طويل لنص باللغة العربية مصمم للتمرير بشكل مستمر من اليمين إلى اليسار." />
+            <TextView
+                android:id="@+id/arabicText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:ellipsize="marquee"
+                android:padding="1dp"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp"
+                android:singleLine="true"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                app:layout_constraintBottom_toTopOf="@id/marquee_layout"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                tools:text="هذا مثال طويل لنص باللغة العربية مصمم للتمرير بشكل مستمر من اليمين إلى اليسار." />
 
-    </LinearLayout>
+        </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 </androidx.constraintlayout.widget.ConstraintLayout>
