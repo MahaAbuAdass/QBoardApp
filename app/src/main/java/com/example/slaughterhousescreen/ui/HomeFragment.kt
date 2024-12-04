@@ -473,10 +473,11 @@ class HomeFragment : Fragment() {
 
         englishAudioQueue.clear()
         englishAudioQueue.add(R.raw.doorbell)
-        englishAudioQueue.add(R.raw.ticketnumberen)
+//        englishAudioQueue.add(R.raw.enticketnumber)
 
+        englishAudioQueue.add(R.raw.enticketnumber)
         // ticket character
-        val ticketId = resources.getIdentifier(firstCharEn, "raw", requireContext().packageName)
+        val ticketId = resources.getIdentifier("en$firstCharEn", "raw", requireContext().packageName)
         englishAudioQueue.add(ticketId)
 
 
@@ -507,7 +508,7 @@ class HomeFragment : Fragment() {
             val ones = ticketNumberWithoutPrefixEn?.rem(10)  // e.g., 6 for 76
 
             // Play the first audio for the tens digit (e.g., "en_70")
-            val englishTensAudioFileName = "en${tens?.times(10)}" // e.g., "en_70"
+            val englishTensAudioFileName = "en${tens?.times(10)}" // e.g., "en70"
             val tensResourceId = resources.getIdentifier(
                 englishTensAudioFileName,
                 "raw",
@@ -588,9 +589,10 @@ class HomeFragment : Fragment() {
             }
         }
 
-        englishAudioQueue.add(R.raw.please) // Assuming audio2.mp3 is in res/raw
-        englishAudioQueue.add(R.raw.go) // Assuming audio2.mp3 is in res/raw
-        englishAudioQueue.add(R.raw.counter) // Assuming audio2.mp3 is in res/raw
+//        englishAudioQueue.add(R.raw.please) // Assuming audio2.mp3 is in res/raw
+//        englishAudioQueue.add(R.raw.go) // Assuming audio2.mp3 is in res/raw
+//        englishAudioQueue.add(R.raw.counter) // Assuming audio2.mp3 is in res/raw
+        englishAudioQueue.add(R.raw.enpleasegotocounter)
 
 
         if (counterIdAudio != null) {
