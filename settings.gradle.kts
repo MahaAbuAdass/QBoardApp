@@ -13,6 +13,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "SlaughterHouseScreen"
+rootProject.name = "QBoardApp"
 include(":app")
  
