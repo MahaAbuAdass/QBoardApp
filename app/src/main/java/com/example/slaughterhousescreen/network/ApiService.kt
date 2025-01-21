@@ -2,6 +2,7 @@ package com.example.slaughterhousescreen.network
 
 import com.example.slaughterhousescreen.data.CurrentQ
 import com.example.slaughterhousescreen.data.CurrentTicket
+import com.example.slaughterhousescreen.data.FileURL
 import com.example.slaughterhousescreen.data.ImagesResponse
 import com.example.slaughterhousescreen.data.ScrollMessages
 import com.example.slaughterhousescreen.data.TimeResponse
@@ -41,5 +42,11 @@ interface ApiService {
     @GET("api/Get_Current_Time")
     suspend fun getCurrentTime(
     ) : TimeResponse
+
+
+    @GET("api/GetVideoImageBoard")
+    suspend fun getImagesAndVideos(
+        @Query("BaseURL") baseURL: String
+    ) : List<FileURL>
 
 }

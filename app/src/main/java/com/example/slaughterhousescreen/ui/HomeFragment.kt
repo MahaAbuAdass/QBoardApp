@@ -6,6 +6,7 @@ import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.graphics.drawable.Drawable
 import android.media.MediaPlayer
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -17,11 +18,13 @@ import android.view.WindowManager
 import android.view.animation.LinearInterpolator
 import android.widget.TextView
 import android.widget.Toast
+import android.widget.VideoView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -39,11 +42,13 @@ import com.example.slaughterhousescreen.viewmodel.ScrollMessagesViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-
-
 import com.bumptech.glide.request.target.Target
+import com.example.slaughterhousescreen.data.FileURL
+
+
 import com.example.slaughterhousescreen.viewmodel.CurrentTimeViewModel
 import com.example.slaughterhousescreen.viewmodel.GetImagesViewModel
+import com.example.slaughterhousescreen.viewmodel.ImagesAndVideosViewModel
 
 class HomeFragment : Fragment() {
 
@@ -53,8 +58,17 @@ class HomeFragment : Fragment() {
     private lateinit var currentTicketViewModel: CurrentTicketViewModel
     private lateinit var getImagesViewModel: GetImagesViewModel
     private lateinit var getCurrentTimeViewModel: CurrentTimeViewModel
+    private lateinit var imagesAndVideosViewModel: ImagesAndVideosViewModel
+
+    private var videoView : VideoView ?=null
+    private val handlerImg = Handler(Looper.getMainLooper())
+    private var imageIndex = 0
 
     private var language: String? = null
+    private lateinit var viewPager: ViewPager2
+    private lateinit var mediaAdapter: MediaAdapter
+    private val mediaList = mutableListOf<FileURL>()
+
 
     var currentQAdapter: TicketAdapter? = null
     var branchCode: String? = null
@@ -129,7 +143,7 @@ class HomeFragment : Fragment() {
         arabicTextView = binding.arabicText
 
         requireActivity().window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
+        viewPager = binding.viewPager
 
         branchCode = PreferenceManager.getBranchCode(requireContext())
     //    displayNumber = PreferenceManager.getDisplayNumber(requireContext())
@@ -168,6 +182,11 @@ class HomeFragment : Fragment() {
             ViewModelProvider(this, getTimeFactory).get(CurrentTimeViewModel::class.java)
 
 
+        val getFilesFactory = GenericViewModelFactory(ImagesAndVideosViewModel::class) {
+            ImagesAndVideosViewModel(requireContext())
+        }
+        imagesAndVideosViewModel =
+            ViewModelProvider(this, getFilesFactory).get(ImagesAndVideosViewModel::class.java)
 
         callGetImagesApi()
         observerGetImagesViewModel()
@@ -179,7 +198,8 @@ class HomeFragment : Fragment() {
         observerScrollMsgsViewModel()
         callCurrentTimeApi()
         observerCurrentTimeViewModel()
-
+        callGetImagesAndVideosApi()
+        observerImagesAndVideosViewModel()
 
         setupMarquee(arabicTextView, true , 55000L)   // Arabic text (right to left)
         setupMarquee(englishTextView, false,45000L)
@@ -207,7 +227,7 @@ class HomeFragment : Fragment() {
         startMarqueeApiCall() // Start calling the marquee API every 10 minutes
 
 
-//        val videoView = binding.videoView
+ //       videoView = binding.videoView
 //        val videoUrl = "http://192.168.30.50/APIPub2509/Video/Test.mp4"
 //
 //        videoView.setVideoPath(videoUrl)
@@ -217,6 +237,61 @@ class HomeFragment : Fragment() {
 //        }
 
     }
+
+    private fun callGetImagesAndVideosApi() {
+        val baseUrl = PreferenceManager.getBaseUrl(requireContext())
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+            imagesAndVideosViewModel.getImagesAndVideos(baseUrl?:"")
+        }
+    }
+
+
+    private fun observerImagesAndVideosViewModel()
+    {
+        imagesAndVideosViewModel.urlsResponse.observe(viewLifecycleOwner) { fileList ->
+            if (!fileList.isNullOrEmpty()) {
+                setupViewPager(fileList)
+            } else {
+                Log.v("observeMediaList", "Empty or null media list")
+            }
+        }
+
+        imagesAndVideosViewModel.errorResponse.observe(viewLifecycleOwner) {
+            Log.e("observeMediaList", "Error fetching media list: $it")
+        }
+    }
+
+    private fun setupViewPager(fileList: List<FileURL>) {
+        val mediaAdapter = MediaAdapter(requireContext(), fileList)
+        binding.viewPager.adapter = mediaAdapter
+
+        val handler = Handler(Looper.getMainLooper())
+        val runnable = object : Runnable {
+            var currentItem = 0
+
+            override fun run() {
+                val interval = calculateDuration(fileList[currentItem])
+                binding.viewPager.setCurrentItem(currentItem, true)
+                currentItem = (currentItem + 1) % fileList.size // Loop back to the start
+                handler.postDelayed(this, interval)
+            }
+        }
+        handler.postDelayed(runnable, calculateDuration(fileList[0]))
+    }
+
+    private fun calculateDuration(file: FileURL): Long {
+        return if (isVideo(file.fileName ?: "")) {
+            60000L // 1 minute for video
+        } else {
+            10000L // 10 seconds for image
+        }
+    }
+
+    private fun isVideo(fileName: String): Boolean {
+        val videoExtensions = listOf(".mp4", ".mov", ".avi", ".mkv")
+        return videoExtensions.any { fileName.endsWith(it, ignoreCase = true) }
+    }
+
 
     private fun observerCurrentTimeViewModel() {
 
@@ -322,17 +397,45 @@ class HomeFragment : Fragment() {
                 .signature(ObjectKey(System.currentTimeMillis().toString())) // Force reload
                 .into(binding.logo)
 
-            Glide.with(requireContext())
-                .load(images.logoClient)
-                .skipMemoryCache(true) // Skip memory caching
-                .diskCacheStrategy(DiskCacheStrategy.NONE) // Skip disk caching
-                .signature(ObjectKey(System.currentTimeMillis().toString())) // Force reload
-                .load(images.logoDefault)
-                .into(binding.imgCurrent)
-
-            Log.v("imagesssss", images.logoDefault ?: "")
-
         }
+
+//            Glide.with(requireContext())
+//                .load(images.logoClient)
+//                .skipMemoryCache(true) // Skip memory caching
+//                .diskCacheStrategy(DiskCacheStrategy.NONE) // Skip disk caching
+//                .signature(ObjectKey(System.currentTimeMillis().toString())) // Force reload
+//                .load(images.logoDefault)
+//                .into(binding.imgCurrent)
+//
+//            Log.v("imagesssss", images.logoDefault ?: "")
+
+//        val videoUrl = images.vidoe_Default
+//            val imageUrls = listOf(
+//               images.logoClient,
+//               images.logoDefault
+//            )
+//
+//            Log.v("image 1", images.logoClient ?:"")
+//            Log.v("image 1", images.logoDefault ?:"")
+//
+//
+//
+//            // Set the video URI
+//            val videoUri = Uri.parse(videoUrl)
+//            videoView?.setVideoURI(videoUri)
+//
+//            // Start the video
+//       //     videoView?.start()
+//
+//            // Listen for video completion
+//            videoView?.setOnCompletionListener {
+//                if (videoUrl != null) {
+//                    startImageCycle(imageUrls, videoUrl)
+//                }
+//            }
+//            playVideo()
+//        }
+
         currentQViewModel.errorResponse.observe(viewLifecycleOwner) {
             Log.v("error", it.toString())
 
@@ -340,6 +443,70 @@ class HomeFragment : Fragment() {
         }
 
     }
+
+    private fun playVideo() {
+//        binding.imgCurrent.visibility = View.GONE
+//        videoView?.visibility = View.VISIBLE
+//        videoView?.start()
+    }
+
+//    private fun startImageCycle(imageUrls: List<String?>, videoUrl: String) {
+//        if (imageUrls.isEmpty()) return // Ensure there are images to display
+//
+////        videoView?.visibility = View.GONE
+////        binding.imgCurrent.visibility = View.VISIBLE
+//
+//        handler.post(object : Runnable {
+//            override fun run() {
+//                // Log the current index and URL being loaded
+//                Log.d("ImageCycle", "Displaying image index: $imageIndex, URL: ${imageUrls[imageIndex]}")
+//
+//                // Load the current image using Glide
+//                Glide.with(requireContext())
+//                    .load(imageUrls[imageIndex])
+//                    .skipMemoryCache(true)
+//                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+//                    .signature(ObjectKey(System.currentTimeMillis().toString())) // Ensure fresh load
+//                    .listener(object : RequestListener<Drawable> {
+//                        override fun onLoadFailed(
+//                            e: GlideException?,
+//                            model: Any?,
+//                            target: Target<Drawable>?,
+//                            isFirstResource: Boolean
+//                        ): Boolean {
+//                            Log.e("ImageCycle", "Failed to load image: ${imageUrls[imageIndex]}", e)
+//                            return false
+//                        }
+//
+//                        override fun onResourceReady(
+//                            resource: Drawable?,
+//                            model: Any?,
+//                            target: Target<Drawable>?,
+//                            dataSource: DataSource?,
+//                            isFirstResource: Boolean
+//                        ): Boolean {
+//                            Log.d("ImageCycle", "Successfully loaded image: ${imageUrls[imageIndex]}")
+//                            return false
+//                        }
+//                    })
+//                    .into(binding.imgCurrent)
+//
+//                // Update index
+//                imageIndex = (imageIndex + 1) % imageUrls.size
+//
+//                // Display the next image after 3 seconds (or any desired delay)
+//                if (imageIndex == 0) {
+//                    // Cycle complete, go back to video
+//                    playVideo()
+//                } else {
+//                    // Show the next image after 3 seconds
+//                    handler.postDelayed(this, 3000) // You can adjust this delay
+//                }
+//            }
+//        })
+//    }
+
+
 
 
 

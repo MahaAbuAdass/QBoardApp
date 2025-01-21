@@ -34,6 +34,7 @@ class RetrofitBuilder(context: Context) {
 
     suspend fun getCurrentTime()=apiService.getCurrentTime()
 
+    suspend fun getImagesAndVideos(baseUrl : String)=apiService.getImagesAndVideos(baseUrl)
 }
 
 
