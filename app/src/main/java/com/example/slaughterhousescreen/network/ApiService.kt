@@ -28,14 +28,16 @@ interface ApiService {
 
     @GET("api/AndriodGetCurrentCalled")
     suspend fun getCurrentTicket(
-        @Query("branchcode") branchcode: String
-      //  @Query("QBoardNo") QBoardNo: String
+        @Query("branchcode") branchcode: String ,
+        @Query("DisplayNo") DisplayNo: String
 
     ) : CurrentTicket
 
     @GET("api/AndriodGetImages")
     suspend fun getImages(
-        @Query("BaseURL") baseURL: String
+        @Query("BaseURL") baseURL: String ,
+        @Query("Branchcode") Branchcode: String
+
     ) : ImagesResponse
 
 

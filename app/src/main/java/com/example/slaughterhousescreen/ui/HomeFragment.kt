@@ -198,8 +198,8 @@ class HomeFragment : Fragment() {
         observerScrollMsgsViewModel()
         callCurrentTimeApi()
         observerCurrentTimeViewModel()
-        callGetImagesAndVideosApi()
-        observerImagesAndVideosViewModel()
+//        callGetImagesAndVideosApi()
+//        observerImagesAndVideosViewModel()
 
         setupMarquee(arabicTextView, true , 55000L)   // Arabic text (right to left)
         setupMarquee(englishTextView, false,45000L)
@@ -379,7 +379,7 @@ class HomeFragment : Fragment() {
     private fun callGetImagesApi() {
         val baseUrl = PreferenceManager.getBaseUrl(requireContext())
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            getImagesViewModel.getImages(baseUrl?:"")
+            getImagesViewModel.getImages(baseUrl?:"" , branchCode?:"")
         }
     }
 
@@ -512,7 +512,7 @@ class HomeFragment : Fragment() {
 
     private fun callCurrentTicketApi() {
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            currentTicketViewModel.getCurrentTicket(branchCode ?: ""
+            currentTicketViewModel.getCurrentTicket(branchCode ?: "" ,"1"
             //    ,displayNumber?:""
             )
         }

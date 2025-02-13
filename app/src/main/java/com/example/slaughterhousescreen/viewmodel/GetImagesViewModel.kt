@@ -23,10 +23,10 @@ class GetImagesViewModel (context: Context) : ViewModel() {
     val errorResponse: LiveData<String?> = _errorResponse
 
 
-    suspend fun getImages(baseUrl : String ){
+    suspend fun getImages(baseUrl : String , branchcode : String){
         viewModelScope.launch {
             try {
-                val response = retrofitBuilder.getImages(baseUrl)
+                val response = retrofitBuilder.getImages(baseUrl ,branchcode)
                 _imagesResponse.postValue(response)
             } catch (e: HttpException){
                 handleHttpException(e)

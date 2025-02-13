@@ -27,12 +27,12 @@ class CurrentTicketViewModel  (context: Context) : ViewModel() {
 
 
 
-  suspend fun getCurrentTicket(branchCode : String
-  //                             , displayNumber : String
+  suspend fun getCurrentTicket(branchCode : String ,
+ displayNumber : String
   ){
             try {
                 val response = retrofitBuilder.getCurrentTicket(branchCode
-                //    ,displayNumber
+                   ,displayNumber
                 )
                 _currentTicket.postValue(response)
                 _invalidTicket.postValue(null) // Clear any previous invalid ticket
