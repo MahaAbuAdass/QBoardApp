@@ -13,7 +13,7 @@ class TicketAdapter(
     private var currentQList: List<CurrentQ?>
 ) : RecyclerView.Adapter<TicketAdapter.ItemViewHolder>() {
 
-    private val maxItems = 5 // Maximum number of items to display
+    private val maxItems = 7 // Maximum number of items to display
 
     inner class ItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val status: TextView = itemView.findViewById(R.id.cell_status)
@@ -39,11 +39,11 @@ class TicketAdapter(
 
             holder.status.text = " \n -" // Keeps the layout even if empty
 
-            holder.status.textSize = 19f // Set text size in SP (e.g., 20f for 20sp)
+            holder.status.textSize = 16.5f // Set text size in SP (e.g., 20f for 20sp)
 
 
             holder.ticketNumber.text = " \n -" // Keeps the layout even if empty
-            holder.ticketNumber.textSize = 19f // Keeps the layout even if empty
+            holder.ticketNumber.textSize = 16.5f // Keeps the layout even if empty
 
         }
     }

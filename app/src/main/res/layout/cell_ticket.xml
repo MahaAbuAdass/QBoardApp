@@ -26,11 +26,10 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:id="@+id/cell_status"
-                android:padding="8dp"
+                android:padding="2dp"
                 tools:text="ticket #"
                 android:textColor="@color/green"
-                android:textSize="36sp"
-                android:textStyle="bold"
+                android:textSize="31sp"
 
                 />
 
@@ -53,11 +52,10 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:gravity="center"
-            android:padding="8dp"
+            android:padding="2dp"
             tools:text="ticket #"
             android:textColor="@color/green"
-            android:textSize="36sp"
-            android:textStyle="bold"
+            android:textSize="31sp"
 
             />
     </com.google.android.material.card.MaterialCardView>
