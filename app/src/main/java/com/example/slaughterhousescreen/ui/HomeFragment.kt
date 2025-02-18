@@ -143,7 +143,7 @@ class HomeFragment : Fragment() {
         arabicTextView = binding.arabicText
 
         requireActivity().window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        viewPager = binding.viewPager
+     //   viewPager = binding.viewPager
 
         branchCode = PreferenceManager.getBranchCode(requireContext())
     //    displayNumber = PreferenceManager.getDisplayNumber(requireContext())
@@ -263,7 +263,7 @@ class HomeFragment : Fragment() {
 
     private fun setupViewPager(fileList: List<FileURL>) {
         val mediaAdapter = MediaAdapter(requireContext(), fileList)
-        binding.viewPager.adapter = mediaAdapter
+      //  binding.viewPager.adapter = mediaAdapter
 
         val handler = Handler(Looper.getMainLooper())
         val runnable = object : Runnable {
@@ -271,7 +271,7 @@ class HomeFragment : Fragment() {
 
             override fun run() {
                 val interval = calculateDuration(fileList[currentItem])
-                binding.viewPager.setCurrentItem(currentItem, true)
+             //   binding.viewPager.setCurrentItem(currentItem, true)
                 currentItem = (currentItem + 1) % fileList.size // Loop back to the start
                 handler.postDelayed(this, interval)
             }
@@ -397,15 +397,15 @@ class HomeFragment : Fragment() {
                 .signature(ObjectKey(System.currentTimeMillis().toString())) // Force reload
                 .into(binding.logo)
 
-        }
 
-//            Glide.with(requireContext())
-//                .load(images.logoClient)
-//                .skipMemoryCache(true) // Skip memory caching
-//                .diskCacheStrategy(DiskCacheStrategy.NONE) // Skip disk caching
-//                .signature(ObjectKey(System.currentTimeMillis().toString())) // Force reload
-//                .load(images.logoDefault)
-//                .into(binding.imgCurrent)
+
+            Glide.with(requireContext())
+                .load(images.logoDefault)
+                .skipMemoryCache(true) // Skip memory caching
+                .diskCacheStrategy(DiskCacheStrategy.NONE) // Skip disk caching
+                .signature(ObjectKey(System.currentTimeMillis().toString())) // Force reload
+                .into(binding.imgCurrent)
+        }
 //
 //            Log.v("imagesssss", images.logoDefault ?: "")
 
