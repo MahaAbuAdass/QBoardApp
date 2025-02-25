@@ -39,11 +39,11 @@ class TicketAdapter(
 
             holder.status.text = " \n -" // Keeps the layout even if empty
 
-            holder.status.textSize = 16.5f // Set text size in SP (e.g., 20f for 20sp)
+            holder.status.textSize = 16.7f // Set text size in SP (e.g., 20f for 20sp)
 
 
             holder.ticketNumber.text = " \n -" // Keeps the layout even if empty
-            holder.ticketNumber.textSize = 16.5f // Keeps the layout even if empty
+            holder.ticketNumber.textSize = 16.7f // Keeps the layout even if empty
 
         }
     }

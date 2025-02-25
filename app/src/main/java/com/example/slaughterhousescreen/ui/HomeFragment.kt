@@ -59,6 +59,8 @@ class HomeFragment : Fragment() {
     private lateinit var getImagesViewModel: GetImagesViewModel
     private lateinit var getCurrentTimeViewModel: CurrentTimeViewModel
     private lateinit var imagesAndVideosViewModel: ImagesAndVideosViewModel
+    private var isArabicAudioPlaying = false
+    private val ticketQueue: MutableList<Pair<String?, Int?>> = mutableListOf()
 
     private var videoView : VideoView ?=null
     private val handlerImg = Handler(Looper.getMainLooper())
@@ -98,7 +100,10 @@ class HomeFragment : Fragment() {
     private val runnable = object : Runnable {
         override fun run() {
             callGetCurrentQApi()
-            callCurrentTicketApi() // Call the API to refresh the data
+
+            if (!isArabicAudioPlaying) { // Skip API calls if Arabic audio is playing
+                callCurrentTicketApi()
+            }
             handler.postDelayed(this, refreshInterval) // Schedule next execution
          //   screenHandler.postDelayed(this, screenRefreshInterval) // Schedule next execution
 
@@ -242,6 +247,34 @@ class HomeFragment : Fragment() {
         val baseUrl = PreferenceManager.getBaseUrl(requireContext())
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             imagesAndVideosViewModel.getImagesAndVideos(baseUrl?:"")
+        }
+    }
+
+
+    private fun enqueueTicket(ticketNumberAudio: String?, counterIdAudio: Int?) {
+        if (ticketNumberAudio != null && counterIdAudio != null) {
+            // Add the ticket to the queue
+            ticketQueue.add(Pair(ticketNumberAudio, counterIdAudio))
+
+            // Update UI to show the ticket number being processed
+            binding.titleCurrent.text = "$ticketNumberAudio" // Display ticket number
+            flashText(binding.titleCurrent, "$ticketNumberAudio ")
+
+            // Start playing the first audio if not already playing
+            if (!isArabicAudioPlaying) {
+                playNextAudio()
+            }
+        }
+    }
+
+    private fun processNextTicket() {
+        if (ticketQueue.isNotEmpty() && !isArabicAudioPlaying) {
+            val (ticketNumberAudio, counterIdAudio) = ticketQueue.removeAt(0)
+            binding.noCurrent.text = "Counter: $counterIdAudio"
+
+            playArabicAudio(ticketNumberAudio, counterIdAudio)
+        } else {
+            Log.d("Queue", "No more tickets in queue.")
         }
     }
 
@@ -511,10 +544,16 @@ class HomeFragment : Fragment() {
 
 
     private fun callCurrentTicketApi() {
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            currentTicketViewModel.getCurrentTicket(branchCode ?: "" ,"1"
-            //    ,displayNumber?:""
-            )
+
+        if (!isArabicAudioPlaying) {
+            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                currentTicketViewModel.getCurrentTicket(branchCode ?: "" ,"1"
+                    //    ,displayNumber?:""
+                )
+            }
+        }
+        else {
+            Log.d("APIRequest", "Waiting for audio playback to finish before calling API.")
         }
     }
 
@@ -534,7 +573,8 @@ class HomeFragment : Fragment() {
 
                 "2" -> {
                     // Play only Arabic audio
-                    playArabicAudio(ticketNumberAudio, counterIdAudio)
+                    enqueueTicket(ticketNumberAudio, counterIdAudio)
+                   // playArabicAudio(ticketNumberAudio, counterIdAudio)
                 }
 
                 "3" -> {
@@ -592,6 +632,45 @@ class HomeFragment : Fragment() {
 
         }
     }
+    // Function to prepare the audio queue based on the ticket details
+    private fun prepareAudioQueue(ticketNumberAudio: String?, counterIdAudio: Int?) {
+        // Clear the previous audio queue
+        audioQueue.clear()
+
+        // Add doorbell and ticket audio to the queue
+        audioQueue.add(R.raw.doorbell)   // Doorbell sound
+        audioQueue.add(R.raw.ticketar)   // "Ticket" announcement in Arabic
+
+        // Add ticket character audio (e.g., for 'A', 'B' etc.)
+        val firstChar = ticketNumberAudio?.firstOrNull()?.lowercaseChar()?.toString()
+        val ticketId = resources.getIdentifier(firstChar, "raw", requireContext().packageName)
+        if (ticketId != 0) {
+            audioQueue.add(ticketId)
+        }
+
+        // Extract ticket number (remove prefix like 'T' or 'A')
+        val ticketNumberWithoutPrefix = ticketNumberAudio?.substring(1)?.toIntOrNull()
+        if (ticketNumberWithoutPrefix != null) {
+            val ticketAudioFileName = "ar$ticketNumberWithoutPrefix"
+            val resourceId = resources.getIdentifier(ticketAudioFileName, "raw", requireContext().packageName)
+            if (resourceId != 0) {
+                audioQueue.add(resourceId) // Add ticket number announcement
+            }
+        }
+
+        // Add counter ID audio
+        counterIdAudio?.let {
+            val counterAudioFileName = "ar$it"
+            val counterResourceId = resources.getIdentifier(counterAudioFileName, "raw", requireContext().packageName)
+            if (counterResourceId != 0) {
+                audioQueue.add(counterResourceId) // Add counter number announcement
+            }
+        }
+
+        // Add completion audio (final message)
+        audioQueue.add(R.raw.arabic)
+    }
+
 
     private fun flashText(textView: TextView, text: String) {
         val handler = Handler(Looper.getMainLooper())
@@ -795,6 +874,16 @@ class HomeFragment : Fragment() {
         val firstChar = ticketNumberAudio?.firstOrNull()?.lowercaseChar()?.toString()
         val ticketNumberWithoutPrefix = ticketNumberAudio?.substring(1)?.toInt()
 
+        if (isArabicAudioPlaying) {
+            Log.d("AudioPlayback", "Audio is already playing. Skipping API call.")
+            return
+        }
+
+        isArabicAudioPlaying = true
+
+        prepareAudioQueue(ticketNumberAudio, counterIdAudio)
+
+
         audioQueue.clear()
         audioQueue.add(R.raw.doorbell)
        audioQueue.add(R.raw.ticketar)
@@ -907,6 +996,9 @@ class HomeFragment : Fragment() {
         // Start playing the first audio if queue is not empty
         if (audioQueue.isNotEmpty()) {
             playNextAudio()
+        }else {
+            isArabicAudioPlaying = false  // Reset flag if no audio is queued
+            processNextTicket() // Move
         }
     }
 
@@ -938,16 +1030,33 @@ class HomeFragment : Fragment() {
 
             if (resourceId != 0) {
                 mediaPlayer = MediaPlayer.create(requireContext(), resourceId)
-                mediaPlayer?.setOnCompletionListener {
-                    playNextAudio(onComplete) // Recursively play the next audio
+
+                mediaPlayer?.apply {
+                    setOnCompletionListener {
+                        // Release the media player and continue with the next audio
+                        release()
+                        mediaPlayer = null
+
+                        // Continue playing the next audio in the queue
+                        playNextAudio(onComplete)
+                    }
+                    start()
                 }
-                mediaPlayer?.start()
             } else {
                 Log.e("AudioError", "Invalid resource ID: $resourceId")
-                playNextAudio(onComplete) // Skip this invalid resource and continue to the next one
+                // Skip invalid file and continue with the next one
+                playNextAudio(onComplete)
             }
         } else {
-            onComplete?.invoke() // When all audio is finished, trigger onComplete
+            // All audio in the queue has been played
+            isArabicAudioPlaying = false  // Reset flag to indicate no audio is playing
+            Log.d("AudioPlayback", "Arabic audio finished. API can be called now.")
+
+            // Process the next ticket
+            processNextTicket()
+
+            // Invoke the callback if provided
+            onComplete?.invoke()
         }
     }
 
