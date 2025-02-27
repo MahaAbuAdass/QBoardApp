@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.qboard"
+    namespace = "com.example.slaughterhousescreen"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.qboard"
+        applicationId = "com.example.slaughterhousescreen"
         minSdk = 23
         targetSdk = 34
         versionCode = 1
