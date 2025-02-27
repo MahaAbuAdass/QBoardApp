@@ -59,8 +59,16 @@ class HomeFragment : Fragment() {
     private lateinit var getImagesViewModel: GetImagesViewModel
     private lateinit var getCurrentTimeViewModel: CurrentTimeViewModel
     private lateinit var imagesAndVideosViewModel: ImagesAndVideosViewModel
-    private var isArabicAudioPlaying = false
-    private val ticketQueue: MutableList<Pair<String?, Int?>> = mutableListOf()
+
+
+   // private val ticketQueue: MutableList<Pair<String?, Int?>> = mutableListOf()
+
+   private var isArabicAudioPlaying = false
+    private val ticketQueue: MutableList<Triple<String?, Int?, Int>> = mutableListOf()
+    private var isProcessingMultiLang = false // To manage `id = 3`
+    private var isEnglishAudioPlaying = false
+    private val englishTicketQueue: MutableList<Pair<String?, Int?>> = mutableListOf()
+
 
     private var videoView : VideoView ?=null
     private val handlerImg = Handler(Looper.getMainLooper())
@@ -101,9 +109,11 @@ class HomeFragment : Fragment() {
         override fun run() {
             callGetCurrentQApi()
 
-            if (!isArabicAudioPlaying) { // Skip API calls if Arabic audio is playing
-                callCurrentTicketApi()
-            }
+            if (!isArabicAudioPlaying && !isEnglishAudioPlaying && !isProcessingMultiLang) {
+                // Skip API calls if Arabic audio is playing
+                    callCurrentTicketApi()
+                }
+
             handler.postDelayed(this, refreshInterval) // Schedule next execution
          //   screenHandler.postDelayed(this, screenRefreshInterval) // Schedule next execution
 
@@ -249,36 +259,6 @@ class HomeFragment : Fragment() {
             imagesAndVideosViewModel.getImagesAndVideos(baseUrl?:"")
         }
     }
-
-
-    private fun enqueueTicket(ticketNumberAudio: String?, counterIdAudio: Int?) {
-        if (ticketNumberAudio != null && counterIdAudio != null) {
-            // Add the ticket to the queue
-            ticketQueue.add(Pair(ticketNumberAudio, counterIdAudio))
-
-            // Update UI to show the ticket number being processed
-            binding.titleCurrent.text = "$ticketNumberAudio" // Display ticket number
-            flashText(binding.titleCurrent, "$ticketNumberAudio ")
-
-            // Start playing the first audio if not already playing
-            if (!isArabicAudioPlaying) {
-                playNextAudio()
-            }
-        }
-    }
-
-    private fun processNextTicket() {
-        if (ticketQueue.isNotEmpty() && !isArabicAudioPlaying) {
-            val (ticketNumberAudio, counterIdAudio) = ticketQueue.removeAt(0)
-            binding.noCurrent.text = "Counter: $counterIdAudio"
-
-            playArabicAudio(ticketNumberAudio, counterIdAudio)
-        } else {
-            Log.d("Queue", "No more tickets in queue.")
-        }
-    }
-
-
     private fun observerImagesAndVideosViewModel()
     {
         imagesAndVideosViewModel.urlsResponse.observe(viewLifecycleOwner) { fileList ->
@@ -406,16 +386,12 @@ class HomeFragment : Fragment() {
             animator.start()
         }
     }
-
-
-
     private fun callGetImagesApi() {
         val baseUrl = PreferenceManager.getBaseUrl(requireContext())
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             getImagesViewModel.getImages(baseUrl?:"" , branchCode?:"")
         }
     }
-
 
     private fun observerGetImagesViewModel() {
         getImagesViewModel.imagesResponse.observe(viewLifecycleOwner) { images ->
@@ -546,10 +522,14 @@ class HomeFragment : Fragment() {
     private fun callCurrentTicketApi() {
 
         if (!isArabicAudioPlaying) {
-            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                currentTicketViewModel.getCurrentTicket(branchCode ?: "" ,"1"
-                    //    ,displayNumber?:""
-                )
+
+            if (!isEnglishAudioPlaying) {
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    currentTicketViewModel.getCurrentTicket(
+                        branchCode ?: "", "1"
+                        //    ,displayNumber?:""
+                    )
+                }
             }
         }
         else {
@@ -561,40 +541,19 @@ class HomeFragment : Fragment() {
     @SuppressLint("SetTextI18n")
     private fun observerCurrentTicketViewModel() {
         currentTicketViewModel.currentTicket.observe(viewLifecycleOwner) { currentTicket ->
+            val ticketNumber = currentTicket.TicketNo
+            val counterId = currentTicket.CounterId?.toInt()
+            val languageId = language?.toInt()
 
-            val ticketNumberAudio = currentTicket.TicketNo
-            val counterIdAudio = currentTicket.CounterId?.toInt()
-
-            when (language) {
-                "1" -> {
-                    // Play only English audio
-                    playEnglishAudio(ticketNumberAudio, counterIdAudio)
-                }
-
-                "2" -> {
-                    // Play only Arabic audio
-                    enqueueTicket(ticketNumberAudio, counterIdAudio)
-                   // playArabicAudio(ticketNumberAudio, counterIdAudio)
-                }
-
-                "3" -> {
-                    // Play both English and Arabic audios sequentially
-                    playEnglishAudio(ticketNumberAudio, counterIdAudio) {
-                        // Play Arabic after English finishes
-                        playArabicAudio(ticketNumberAudio, counterIdAudio)
-                    }
-                }
-
-                else -> {
-                    Log.e("AudioError", "Invalid language value: $language")
-                }
+            if (languageId != null) {
+                enqueueTicket(ticketNumber, counterId, languageId)
             }
 
 
-            binding.titleCurrent.text = "${currentTicket.TicketNo}"
-            flashText(binding.titleCurrent, "${currentTicket.TicketNo} ")
+//
 
-            binding.noCurrent.text = "Counter: ${currentTicket.CounterId}"
+//
+//            binding.noCurrent.text = "Counter: ${currentTicket.CounterId}"
 
             // Log the image path
             Log.d("ImagePath", currentTicket.Path ?: "")
@@ -632,45 +591,59 @@ class HomeFragment : Fragment() {
 
         }
     }
-    // Function to prepare the audio queue based on the ticket details
-    private fun prepareAudioQueue(ticketNumberAudio: String?, counterIdAudio: Int?) {
-        // Clear the previous audio queue
-        audioQueue.clear()
 
-        // Add doorbell and ticket audio to the queue
-        audioQueue.add(R.raw.doorbell)   // Doorbell sound
-        audioQueue.add(R.raw.ticketar)   // "Ticket" announcement in Arabic
+//    private fun enqueueEnglishTicket(ticketNumberAudio: String?, counterIdAudio: Int? , language : Int) {
+//        if (ticketNumberAudio != null && counterIdAudio != null) {
+//            // Add the ticket to the queue
+//            englishTicketQueue.add(Pair(ticketNumberAudio, counterIdAudio))
+//
+//            // Update UI to show the ticket number being processed
+////            binding.titleCurrent.text = "$ticketNumberAudio" // Display ticket number
+////            flashText(binding.titleCurrent, "$ticketNumberAudio ")
+//
+//            // Start playing the first audio if not already playing
+//            if (!isEnglishAudioPlaying) {
+//                playNextAudioEnglish()
+//            }
+//        }
+//    }
 
-        // Add ticket character audio (e.g., for 'A', 'B' etc.)
-        val firstChar = ticketNumberAudio?.firstOrNull()?.lowercaseChar()?.toString()
-        val ticketId = resources.getIdentifier(firstChar, "raw", requireContext().packageName)
-        if (ticketId != 0) {
-            audioQueue.add(ticketId)
-        }
 
-        // Extract ticket number (remove prefix like 'T' or 'A')
-        val ticketNumberWithoutPrefix = ticketNumberAudio?.substring(1)?.toIntOrNull()
-        if (ticketNumberWithoutPrefix != null) {
-            val ticketAudioFileName = "ar$ticketNumberWithoutPrefix"
-            val resourceId = resources.getIdentifier(ticketAudioFileName, "raw", requireContext().packageName)
-            if (resourceId != 0) {
-                audioQueue.add(resourceId) // Add ticket number announcement
+    private fun enqueueTicket(ticketNumber: String?, counterId: Int?, languageId: Int) {
+        if (ticketNumber != null && counterId != null) {
+            ticketQueue.add(Triple(ticketNumber, counterId, languageId))
+
+            if (ticketQueue.size == 1) {
+                processNextTicket()
             }
         }
-
-        // Add counter ID audio
-        counterIdAudio?.let {
-            val counterAudioFileName = "ar$it"
-            val counterResourceId = resources.getIdentifier(counterAudioFileName, "raw", requireContext().packageName)
-            if (counterResourceId != 0) {
-                audioQueue.add(counterResourceId) // Add counter number announcement
-            }
-        }
-
-        // Add completion audio (final message)
-        audioQueue.add(R.raw.arabic)
     }
 
+    private fun processNextTicket() {
+        if (ticketQueue.isNotEmpty() && !isArabicAudioPlaying && !isEnglishAudioPlaying && !isProcessingMultiLang) {
+            val (ticketNumber, counterId, languageId) = ticketQueue.removeAt(0)
+
+            binding.titleCurrent.text = ticketNumber
+            binding.noCurrent.text = "Counter: $counterId"
+            flashText(binding.titleCurrent, ticketNumber?:"")
+
+
+
+            when (languageId) {
+                1 -> playEnglishAudio(ticketNumber, counterId){    processNextTicket()}
+                2 -> playArabicAudio(ticketNumber, counterId){    processNextTicket()}
+                3 -> {
+                    isProcessingMultiLang = true
+                    playEnglishAudio(ticketNumber, counterId) {
+                        playArabicAudio(ticketNumber, counterId) {
+                            isProcessingMultiLang = false
+                            processNextTicket()
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     private fun flashText(textView: TextView, text: String) {
         val handler = Handler(Looper.getMainLooper())
@@ -716,6 +689,12 @@ class HomeFragment : Fragment() {
         Log.v("ticket number", firstCharEn + ticketNumberWithoutPrefixEn)
 
 
+        if (isEnglishAudioPlaying) {
+            Log.d("AudioPlayback", "Audio is already playing. Skipping API call.")
+            return
+        }
+
+        isEnglishAudioPlaying = true
 
         englishAudioQueue.clear()
         englishAudioQueue.add(R.raw.doorbell)
@@ -723,7 +702,8 @@ class HomeFragment : Fragment() {
 
         englishAudioQueue.add(R.raw.enticketnumber)
         // ticket character
-        val ticketId = resources.getIdentifier("en$firstCharEn", "raw", requireContext().packageName)
+        val ticketId =
+            resources.getIdentifier("en$firstCharEn", "raw", requireContext().packageName)
         englishAudioQueue.add(ticketId)
 
 
@@ -787,6 +767,7 @@ class HomeFragment : Fragment() {
             val hundreds = ticketNumberWithoutPrefixEn?.div(100)  // e.g., 7 for 736
             val tens = (ticketNumberWithoutPrefixEn?.rem(100))?.div(10)  // e.g., 3 for 736
             val ones = ticketNumberWithoutPrefixEn?.rem(10)  // e.g., 6 for 736
+            val lastTwoDigits = ticketNumberWithoutPrefixEn?.rem(100) // e.g., 36 for 736
 
             // Play the audio for the hundreds digit (e.g., "en_700")
             val englishHundredsAudioFileName = "en${hundreds?.times(100)}" // e.g., "en_700"
@@ -802,35 +783,142 @@ class HomeFragment : Fragment() {
                 Log.e("AudioError", "English audio file not found for hundreds: $hundreds")
             }
 
-            // Play the audio for the tens digit if it's not 0 (e.g., "en_30")
-            if (tens != 0) {
-                val englishTensAudioFileName = "en${tens?.times(10)}" // e.g., "en_30"
-                val tensResourceId = resources.getIdentifier(
-                    englishTensAudioFileName,
+            if (lastTwoDigits in 1..19) {
+                val englishLastTwoAudioFileName = "en$lastTwoDigits" // e.g., "en19"
+                val lastTwoResourceId = resources.getIdentifier(
+                    englishLastTwoAudioFileName,
                     "raw",
                     requireContext().packageName
                 )
 
-                if (tensResourceId != 0) {
-                    englishAudioQueue.add(tensResourceId)
+                if (lastTwoResourceId != 0) {
+                    englishAudioQueue.add(lastTwoResourceId)
                 } else {
-                    Log.e("AudioError", "English audio file not found for tens: $tens")
+                    Log.e(
+                        "AudioError",
+                        "English audio file not found for: $englishLastTwoAudioFileName"
+                    )
+                }
+            } else {
+                // Otherwise, split into tens and ones
+
+
+                // Play the audio for the tens digit (e.g., "en30")
+                if (tens != 0) {
+                    val englishTensAudioFileName = "en${tens?.times(10)}" // e.g., "en30"
+                    val tensResourceId = resources.getIdentifier(
+                        englishTensAudioFileName,
+                        "raw",
+                        requireContext().packageName
+                    )
+
+                    if (tensResourceId != 0) {
+                        englishAudioQueue.add(tensResourceId)
+                    } else {
+                        Log.e("AudioError", "English audio file not found for tens: $tens")
+                    }
+                }
+
+                // Play the audio for the ones digit if it's not 0 (e.g., "en6")
+                if (ones != 0) {
+                    val englishOnesAudioFileName = "en$ones" // e.g., "en6"
+                    val onesResourceId = resources.getIdentifier(
+                        englishOnesAudioFileName,
+                        "raw",
+                        requireContext().packageName
+                    )
+
+                    if (onesResourceId != 0) {
+                        englishAudioQueue.add(onesResourceId)
+                    } else {
+                        Log.e("AudioError", "English audio file not found for ones: $ones")
+                    }
+                }
+            }
+        }
+        else if (ticketNumberWithoutPrefixEn in 1000..9999) {
+            // Split the number into thousands, hundreds, tens, and ones digits
+            val thousands = ticketNumberWithoutPrefixEn?.div(1000)  // e.g., 7 for 7366
+            val hundreds = (ticketNumberWithoutPrefixEn?.rem(1000))?.div(100)  // e.g., 3 for 7366
+            val tens = (ticketNumberWithoutPrefixEn?.rem(100))?.div(10)  // e.g., 6 for 7366
+            val ones = ticketNumberWithoutPrefixEn?.rem(10)  // e.g., 6 for 7366
+            val lastTwoDigits = ticketNumberWithoutPrefixEn?.rem(100) // e.g., 36 for 736
+
+            // Play the audio for the thousands digit (e.g., "en_7000")
+            val englishThousandsAudioFileName = "en${thousands?.times(1000)}" // e.g., "en_7000"
+            val thousandsResourceId = resources.getIdentifier(
+                englishThousandsAudioFileName,
+                "raw",
+                requireContext().packageName
+            )
+
+            if (thousandsResourceId != 0) {
+                englishAudioQueue.add(thousandsResourceId)
+            } else {
+                Log.e("AudioError", "English audio file not found for thousands: $thousands")
+            }
+
+            // Play the audio for the hundreds digit (e.g., "en_700")
+            if (hundreds != 0) {
+                val englishHundredsAudioFileName = "en${hundreds?.times(100)}" // e.g., "en_700"
+                val hundredsResourceId = resources.getIdentifier(
+                    englishHundredsAudioFileName,
+                    "raw",
+                    requireContext().packageName
+                )
+
+                if (hundredsResourceId != 0) {
+                    englishAudioQueue.add(hundredsResourceId)
+                } else {
+                    Log.e("AudioError", "English audio file not found for hundreds: $hundreds")
                 }
             }
 
-            // Play the audio for the ones digit if it's not 0 (e.g., "en_6")
-            if (ones != 0) {
-                val englishOnesAudioFileName = "en$ones" // e.g., "en_6"
-                val onesResourceId = resources.getIdentifier(
-                    englishOnesAudioFileName,
+            if (lastTwoDigits in 1..19) {
+                val englishLastTwoAudioFileName = "en$lastTwoDigits" // e.g., "en19"
+                val lastTwoResourceId = resources.getIdentifier(
+                    englishLastTwoAudioFileName,
                     "raw",
                     requireContext().packageName
                 )
 
-                if (onesResourceId != 0) {
-                    englishAudioQueue.add(onesResourceId)
+                if (lastTwoResourceId != 0) {
+                    englishAudioQueue.add(lastTwoResourceId)
                 } else {
-                    Log.e("AudioError", "English audio file not found for ones: $ones")
+                    Log.e("AudioError", "English audio file not found for: $englishLastTwoAudioFileName")
+                }
+            } else {
+
+                // Play the audio for the tens digit if it's not 0 (e.g., "en_30")
+                if (tens != 0) {
+                    val englishTensAudioFileName = "en${tens?.times(10)}" // e.g., "en_30"
+                    val tensResourceId = resources.getIdentifier(
+                        englishTensAudioFileName,
+                        "raw",
+                        requireContext().packageName
+                    )
+
+                    if (tensResourceId != 0) {
+                        englishAudioQueue.add(tensResourceId)
+                    } else {
+                        Log.e("AudioError", "English audio file not found for tens: $tens")
+                    }
+                }
+
+                // Play the audio for the ones digit if it's not 0 (e.g., "en_6")
+                if (ones != 0) {
+                    val englishOnesAudioFileName = "en$ones" // e.g., "en_6"
+                    val onesResourceId = resources.getIdentifier(
+                        englishOnesAudioFileName,
+                        "raw",
+                        requireContext().packageName
+                    )
+
+                    if (onesResourceId != 0) {
+                        englishAudioQueue.add(onesResourceId)
+                    } else {
+                        Log.e("AudioError", "English audio file not found for ones: $ones")
+                    }
                 }
             }
         }
@@ -842,34 +930,77 @@ class HomeFragment : Fragment() {
 
 
         if (counterIdAudio != null) {
-            if (counterIdAudio < 100) {
-                val counterAudioFileName = "en$counterIdAudio"
-                val counterResourceId = resources.getIdentifier(
-                    counterAudioFileName,
+
+            if (counterIdAudio in 1..19) {
+                // Play the single audio file for numbers 1-19
+                val englishCounterAudioFileName = "en$counterIdAudio"
+
+                val resourceId = resources.getIdentifier(
+                    englishCounterAudioFileName,
                     "raw",
                     requireContext().packageName
                 )
-                englishAudioQueue.add(counterResourceId)
-            }
+                Log.d(
+                    "AudioResource",
+                    "Resource ID for $englishCounterAudioFileName: $resourceId : $ticketNumberWithoutPrefixEn"
+                )
 
+                if (resourceId != 0) {
+                    englishAudioQueue.add(resourceId)
+                } else {
+                    Log.e("AudioError", "Resource not found for: $englishCounterAudioFileName")
+                }
+
+            } else if (counterIdAudio in 20..99) {
+                // Split the number into tens and ones digits
+                val counterTens = counterIdAudio?.div(10)  // e.g., 7 for 76
+                val counterOnes = counterIdAudio?.rem(10)  // e.g., 6 for 76
+
+                // Play the first audio for the tens digit (e.g., "en_70")
+                val englishTensAudioFileName = "en${counterTens?.times(10)}" // e.g., "en70"
+                val tensResourceId = resources.getIdentifier(
+                    englishTensAudioFileName,
+                    "raw",
+                    requireContext().packageName
+                )
+
+                if (tensResourceId != 0) {
+                    englishAudioQueue.add(tensResourceId)
+                } else {
+                    println("English audio file not found for tens: $counterTens")
+                }
+
+                // Play the second audio for the ones digit if it's not 0 (e.g., "en_6")
+                if (counterOnes != 0) {
+                    val englishOnesAudioFileName = "en$counterOnes" // e.g., "en_6"
+                    val onesResourceId = resources.getIdentifier(
+                        englishOnesAudioFileName,
+                        "raw",
+                        requireContext().packageName
+                    )
+
+                    if (onesResourceId != 0) {
+                        englishAudioQueue.add(onesResourceId)
+                    } else {
+                        println("English audio file not found for ones: $counterOnes")
+                    }
+                }
+            }
         }
+
+
+
 
         if (englishAudioQueue.isNotEmpty()) {
             playNextAudioEnglish {
-                // This will trigger Arabic audio playback when English audio is finished
-                //  playArabicAudio(ticketNumberAudio, counterIdAudio)
                 onFinish?.invoke()
-
             }
-        } else {
-            // If no English audio is played, directly invoke onFinish
-            onFinish?.invoke()
         }
     }
 
 
     @SuppressLint("DiscouragedApi")
-    private fun playArabicAudio(ticketNumberAudio: String?, counterIdAudio: Int?) {
+    private fun playArabicAudio(ticketNumberAudio: String?, counterIdAudio: Int?, onFinish: (() -> Unit)? = null) {
         // Remove the first character (the "T") and get the number part
         val firstChar = ticketNumberAudio?.firstOrNull()?.lowercaseChar()?.toString()
         val ticketNumberWithoutPrefix = ticketNumberAudio?.substring(1)?.toInt()
@@ -880,8 +1011,6 @@ class HomeFragment : Fragment() {
         }
 
         isArabicAudioPlaying = true
-
-        prepareAudioQueue(ticketNumberAudio, counterIdAudio)
 
 
         audioQueue.clear()
@@ -976,6 +1105,89 @@ class HomeFragment : Fragment() {
                 }
 
             }
+            else if (ticketNumberWithoutPrefix in 1000..9999) {
+                // Split the number into thousands, hundreds, tens, and ones digits
+                val thousands = ticketNumberWithoutPrefix.div(1000) // e.g., 7 for 7366
+                val hundreds = (ticketNumberWithoutPrefix.rem(1000)).div(100) // e.g., 3 for 7366
+                val tensAndOnes = ticketNumberWithoutPrefix.rem(100) // e.g., 66 for 7366
+                val tens = (ticketNumberWithoutPrefix.rem(100)).div(10) // e.g., 6 for 7366
+                val ones = ticketNumberWithoutPrefix.rem(10) // e.g., 6 for 7366
+
+                // Play audio for thousands
+                if (hundreds == 0 && tens == 0 && ones == 0) {
+                    // Exact thousands
+                    val arabicThousandsAudioFileName = "ar${thousands.times(1000)}" // e.g., "ar7000"
+                    val thousandsResourceId = resources.getIdentifier(
+                        arabicThousandsAudioFileName,
+                        "raw",
+                        requireContext().packageName
+                    )
+                    if (thousandsResourceId != 0) {
+                        audioQueue.add(thousandsResourceId)
+                    } else {
+                        println("Arabic audio file not found for exact thousands: $thousands")
+                    }
+                } else {
+                    // Non-exact thousands
+                    val arabicThousandsAudioFileName = "ar${thousands.times(1000).plus(1)}" // e.g., "ar7001"
+                    val thousandsResourceId = resources.getIdentifier(
+                        arabicThousandsAudioFileName,
+                        "raw",
+                        requireContext().packageName
+                    )
+                    if (thousandsResourceId != 0) {
+                        audioQueue.add(thousandsResourceId)
+                    } else {
+                        println("Arabic audio file not found for non-exact thousands: $thousands")
+                    }
+                }
+
+                // Play audio for hundreds
+                if (hundreds != 0 || tens != 0 || ones != 0) {
+                    if (tens == 0 && ones == 0) {
+                        // Exact hundreds
+                        val arabicHundredsAudioFileName = "ar${hundreds.times(100)}" // e.g., "ar300"
+                        val hundredsResourceId = resources.getIdentifier(
+                            arabicHundredsAudioFileName,
+                            "raw",
+                            requireContext().packageName
+                        )
+                        if (hundredsResourceId != 0) {
+                            audioQueue.add(hundredsResourceId)
+                        } else {
+                            println("Arabic audio file not found for exact hundreds: $hundreds")
+                        }
+                    } else {
+                        // Non-exact hundreds
+                        val arabicHundredsAudioFileName = "ar${hundreds.times(100).plus(1)}" // e.g., "ar301"
+                        val hundredsResourceId = resources.getIdentifier(
+                            arabicHundredsAudioFileName,
+                            "raw",
+                            requireContext().packageName
+                        )
+                        if (hundredsResourceId != 0) {
+                            audioQueue.add(hundredsResourceId)
+                        } else {
+                            println("Arabic audio file not found for non-exact hundreds: $hundreds")
+                        }
+                    }
+                }
+
+                // Play audio for tens and ones
+                if (tens != 0 || ones != 0) {
+                    val tensAndOnesFileName = "ar$tensAndOnes" // e.g., "ar66"
+                    val resourceId = resources.getIdentifier(
+                        tensAndOnesFileName,
+                        "raw",
+                        requireContext().packageName
+                    )
+                    if (resourceId != 0) {
+                        audioQueue.add(resourceId)
+                    } else {
+                        println("Arabic audio file not found for tens and ones: $tensAndOnes")
+                    }
+                }
+            }
         }
        // audioQueue.add(R.raw.collectionarea)
 
@@ -994,69 +1206,41 @@ class HomeFragment : Fragment() {
         }
 
         // Start playing the first audio if queue is not empty
-        if (audioQueue.isNotEmpty()) {
-            playNextAudio()
-        }else {
-            isArabicAudioPlaying = false  // Reset flag if no audio is queued
-            processNextTicket() // Move
+            playNextAudio {
+                isArabicAudioPlaying = false
+                onFinish?.invoke()
         }
     }
 
-    private fun playNextAudioEnglish(onComplete: (() -> Unit)? = null) {
+    private fun playNextAudioEnglish(onComplete: () -> Unit) {
         if (englishAudioQueue.isNotEmpty()) {
             val resourceId = englishAudioQueue.removeAt(0)
-
-            if (resourceId != 0) {
-                mediaPlayer = MediaPlayer.create(requireContext(), resourceId)
-                mediaPlayer?.setOnCompletionListener {
-                    playNextAudioEnglish(onComplete) // Recursively play the next audio
-                }
-                mediaPlayer?.start()
-            } else {
-                Log.e("AudioError", "Invalid resource ID: $resourceId")
-                playNextAudioEnglish(onComplete) // Skip this invalid resource and continue to the next one
+            mediaPlayer = MediaPlayer.create(requireContext(), resourceId)
+            mediaPlayer?.setOnCompletionListener {
+                it.release()
+                mediaPlayer = null
+                playNextAudioEnglish(onComplete)
             }
+            mediaPlayer?.start()
         } else {
-            // All English audio has been played, now call the onComplete callback
-            onComplete?.invoke()
+            isEnglishAudioPlaying = false
+            onComplete.invoke()
         }
-
     }
 
-
-    private fun playNextAudio(onComplete: (() -> Unit)? = null) {
+    private fun playNextAudio(onComplete: () -> Unit) {
         if (audioQueue.isNotEmpty()) {
             val resourceId = audioQueue.removeAt(0)
-
-            if (resourceId != 0) {
-                mediaPlayer = MediaPlayer.create(requireContext(), resourceId)
-
-                mediaPlayer?.apply {
-                    setOnCompletionListener {
-                        // Release the media player and continue with the next audio
-                        release()
-                        mediaPlayer = null
-
-                        // Continue playing the next audio in the queue
-                        playNextAudio(onComplete)
-                    }
-                    start()
-                }
-            } else {
-                Log.e("AudioError", "Invalid resource ID: $resourceId")
-                // Skip invalid file and continue with the next one
+            mediaPlayer = MediaPlayer.create(requireContext(), resourceId)
+            mediaPlayer?.setOnCompletionListener {
+                it.release()
+                mediaPlayer = null
                 playNextAudio(onComplete)
             }
+            mediaPlayer?.start()
         } else {
-            // All audio in the queue has been played
-            isArabicAudioPlaying = false  // Reset flag to indicate no audio is playing
-            Log.d("AudioPlayback", "Arabic audio finished. API can be called now.")
-
-            // Process the next ticket
-            processNextTicket()
-
-            // Invoke the callback if provided
-            onComplete?.invoke()
+            isArabicAudioPlaying = false
+            onComplete.invoke()
         }
     }
 
