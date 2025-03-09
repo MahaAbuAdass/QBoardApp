@@ -15,7 +15,10 @@ object PreferenceManager {
 
     private const val KEY_DISPLAY_NUMBER ="display_number"
     private const val KEY_IS_ADDED_DISPLAY_NUMBER = "is_added_display_number"
+    private const val KEY_ENFORCE_SCREEN_SIZE = "enforce_screen_size"
 
+    private const val KEY_IS_FIRST_LAUNCH = "is_first_launch"
+    private const val KEY_IS_MEDIA_PLAYER = "is_media_player"
 
     private fun getPreferences(context: Context): SharedPreferences {
         return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -103,5 +106,39 @@ object PreferenceManager {
         editor.putBoolean(KEY_IS_ADDED_URL, isAddedUrl)
         editor.apply()
     }
+
+    fun setEnforceScreenSize(context: Context, isChecked: Boolean) {
+        val editor = getPreferences(context).edit()
+        editor.putBoolean(KEY_ENFORCE_SCREEN_SIZE, isChecked)
+        editor.apply()
+    }
+
+    fun isEnforceScreenSizeEnabled(context: Context): Boolean {
+        return getPreferences(context).getBoolean(KEY_ENFORCE_SCREEN_SIZE, false)
+    }
+
+    fun isFirstLaunch(context: Context): Boolean {
+        return getPreferences(context).getBoolean(KEY_IS_FIRST_LAUNCH, true)
+    }
+
+    // Set the first launch flag to false after showing the popup
+    fun setFirstLaunchFlag(context: Context) {
+        val editor = getPreferences(context).edit()
+        editor.putBoolean(KEY_IS_FIRST_LAUNCH, false)
+        editor.apply()
+    }
+
+    // Save the user's choice (Media Player or Smart TV)
+    fun saveMediaPlayerChoice(context: Context, isMediaPlayer: Boolean) {
+        val editor = getPreferences(context).edit()
+        editor.putBoolean(KEY_IS_MEDIA_PLAYER, isMediaPlayer)
+        editor.apply()
+    }
+
+    // Get the user's choice (Media Player or Smart TV)
+    fun isMediaPlayer(context: Context): Boolean {
+        return getPreferences(context).getBoolean(KEY_IS_MEDIA_PLAYER, false)
+    }
+
 
 }
