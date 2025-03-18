@@ -10,11 +10,10 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
-import android.widget.CheckBox
 import android.widget.EditText
-import android.widget.Switch
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -26,7 +25,7 @@ import com.example.slaughterhousescreen.util.PreferenceManager
 class FirstScreen : Fragment() {
 
     private lateinit var binding: FirstFragmentBinding
-    var checkBox : CheckBox ?=null
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -34,59 +33,25 @@ class FirstScreen : Fragment() {
     ): View? {
         binding= FirstFragmentBinding.inflate(inflater,container,false)
 
+        val selectedDeviceType = PreferenceManager.getSelectedDevice(requireContext())
 
-        if (PreferenceManager.isFirstLaunch(requireContext())) {
-            showLaunchPopup()
+        if (selectedDeviceType != null) {
+//            when(selectedDeviceType){
+//                "smartTv" -> {
+//                    DisplayMetricsHelper.resetDisplayMetrics(requireActivity())
+//                }
+//
+//                "mediaPlayer"-> {
+//                    DisplayMetricsHelper.enforceDisplayMetrics(requireActivity())
+//                }
+//            }
+
+        } else {
+            showDeviceTypePopup()
         }
 
-        // Check saved preference to conditionally call configuration
-        if (PreferenceManager.isMediaPlayer(requireContext())) {
-            // Call configuration for Media Player
-            DisplayMetricsHelper.enforceDisplayMetrics(requireActivity())
-        }
-
-        // Button to show the popup again
-       binding.tvType.setOnClickListener {
-            showLaunchPopup() // Open the popup again
-        }
 
         return binding.root
-    }
-
-    @SuppressLint("MissingInflatedId", "UseSwitchCompatOrMaterialCode")
-    private fun showLaunchPopup() {
-        // Create the dialog with a custom layout
-        val dialogView = layoutInflater.inflate(R.layout.dialog_type, null)
-        val switchDeviceType = dialogView.findViewById<Switch>(R.id.switch_btn)
-        val cancelButton = dialogView.findViewById<Button>(R.id.btn_cancel)
-        val saveButton = dialogView.findViewById<Button>(R.id.btn_save)
-
-        val dialog = AlertDialog.Builder(requireContext())
-            .setView(dialogView) // Custom layout with Switch
-            .create()
-
-        // Handle the "Cancel" button click
-        cancelButton.setOnClickListener {
-            dialog.dismiss() // Close the dialog when "Cancel" is clicked
-        }
-
-        // Handle the "Save" button click
-        saveButton.setOnClickListener {
-            val isMediaPlayer = switchDeviceType.isChecked
-            // Save the user's choice
-            PreferenceManager.saveMediaPlayerChoice(requireContext(), isMediaPlayer)
-            // Mark that the first launch is complete
-            PreferenceManager.setFirstLaunchFlag(requireContext())
-
-            // Apply configuration if Media Player is selected
-            if (isMediaPlayer) {
-                DisplayMetricsHelper.enforceDisplayMetrics(requireActivity())
-            }
-            dialog.dismiss() // Close the dialog after saving the choice
-        }
-
-        // Show the dialog
-        dialog.show()
     }
 
 
@@ -95,15 +60,15 @@ class FirstScreen : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-
-
         checkAddedURL()
-
 
         binding.btnSubmit.setOnClickListener {
             checkUrlAndNavigate()
         }
 
+        binding.tvType.setOnClickListener {
+            showDeviceTypePopup()
+        }
 
         var storedUrl = PreferenceManager.getUrl(requireContext())
         binding.etUrl.setText(storedUrl)
@@ -113,6 +78,7 @@ class FirstScreen : Fragment() {
 
         val storedDisplayNumer = PreferenceManager.getDisplayNumber(requireContext())
        // binding.etDisplayNum.setText(storedDisplayNumer)
+
 
         // Add touch listener to hide keyboard when clicking outside the EditText
         view.setOnTouchListener { _, event ->
@@ -131,9 +97,37 @@ class FirstScreen : Fragment() {
         }
     }
 
-    private fun refreshFragment() {
-        parentFragmentManager.beginTransaction().detach(this).attach(this).commit()
+    @SuppressLint("MissingInflatedId", "UseSwitchCompatOrMaterialCode")
+    private fun showDeviceTypePopup() {
+        // Create the dialog with a custom layout
+        val dialogView = layoutInflater.inflate(R.layout.dialog_type, null)
+        val smartTVButton = dialogView.findViewById<Button>(R.id.btn_smart_tv)
+        val mediaPlayerButton = dialogView.findViewById<Button>(R.id.btn_media_player)
+
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogView) // Custom layout with Switch
+            .create()
+
+        smartTVButton.setOnClickListener {
+        //    DisplayMetricsHelper.resetDisplayMetrics(requireActivity())
+            PreferenceManager.saveSelectedDevice(requireContext(),"smartTV")
+            dialog.dismiss()
+          //  activity?.recreate()
+
+        }
+
+        mediaPlayerButton.setOnClickListener {
+          //  DisplayMetricsHelper.enforceDisplayMetrics(requireActivity())
+            PreferenceManager.saveSelectedDevice(requireContext(),"mediaPlayer")
+            dialog.dismiss()
+       //     activity?.recreate()
+
+        }
+
+        dialog.show()
     }
+
+
 
 
     private fun checkAddedURL() {
@@ -189,4 +183,6 @@ class FirstScreen : Fragment() {
     private fun isEditTextEmpty(editText: EditText): Boolean {
         return editText.text.toString().trim().isEmpty()
     }
+
+
 }

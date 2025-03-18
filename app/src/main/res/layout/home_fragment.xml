@@ -3,379 +3,411 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:id="@+id/first_layout"
     android:layout_height="match_parent"
     android:background="@drawable/bg">
 
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/first_card"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="5dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginEnd="5dp"
-        app:cardBackgroundColor="@color/white"
-        app:cardCornerRadius="8dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:strokeColor="@color/white">
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <TextView
-                android:id="@+id/tv_time"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="5dp"
-                android:textColor="@color/green"
-                android:textSize="36sp"
-
-                android:textStyle="bold"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:text="10:10:10" />
-
-            <!--            <TextView-->
-            <!--                android:id="@+id/tv_date"-->
-            <!--                android:layout_width="wrap_content"-->
-            <!--                android:layout_height="wrap_content"-->
-            <!--                android:layout_marginStart="20dp"-->
-            <!--                android:layout_marginEnd="10dp"-->
-            <!--                android:textColor="#9002A800"-->
-            <!--                android:textSize="24sp"-->
-            <!--                android:textStyle="bold"-->
-            <!--                app:layout_constraintStart_toStartOf="parent"-->
-            <!--                app:layout_constraintTop_toBottomOf="@id/tv_time"-->
-            <!--                tools:text="10/10/2024"-->
-            <!--                />-->
-
-
-            <ImageView
-                android:id="@+id/logo"
-                android:layout_width="wrap_content"
-                android:layout_height="75dp"
-                android:layout_marginEnd="7dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-    </com.google.android.material.card.MaterialCardView>
-
-
-    <!--    <ImageView-->
-    <!--        android:id="@+id/setting"-->
-    <!--        android:layout_width="wrap_content"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:src="@drawable/setting"-->
-    <!--        app:layout_constraintStart_toStartOf="parent"-->
-    <!--        app:layout_constraintTop_toTopOf="parent" />-->
-
-
     <LinearLayout
-        android:id="@+id/first_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:orientation="horizontal"
-        android:paddingStart="5dp"
-        android:paddingEnd="5dp"
-        android:weightSum="2"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/first_card">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingTop="10dp"
+        android:paddingBottom="5dp"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:weightSum="90">
 
 
         <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="11.85"
+            android:orientation="horizontal"
+            android:weightSum="96"
+            tools:ignore="Suspicious0dp">
+
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/first_card"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="8dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:strokeColor="@color/white">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <TextView
+                        android:id="@+id/tv_time"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="5dp"
+                        android:textColor="@color/green"
+                        android:textSize="36sp"
+                        android:textStyle="bold"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        tools:text="10:10:10" />
+
+                    <!--            <TextView-->
+                    <!--                android:id="@+id/tv_date"-->
+                    <!--                android:layout_width="wrap_content"-->
+                    <!--                android:layout_height="wrap_content"-->
+                    <!--                android:layout_marginStart="20dp"-->
+                    <!--                android:layout_marginEnd="10dp"-->
+                    <!--                android:textColor="#9002A800"-->
+                    <!--                android:textSize="24sp"-->
+                    <!--                android:textStyle="bold"-->
+                    <!--                app:layout_constraintStart_toStartOf="parent"-->
+                    <!--                app:layout_constraintTop_toBottomOf="@id/tv_time"-->
+                    <!--                tools:text="10/10/2024"-->
+                    <!--                />-->
+
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        android:layout_marginEnd="5dp"
+                        >
+                        <ImageView
+                            android:id="@+id/logo"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            />
+
+                    </LinearLayout>
+
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+
+            <!--    <ImageView-->
+            <!--        android:id="@+id/setting"-->
+            <!--        android:layout_width="wrap_content"-->
+            <!--        android:layout_height="wrap_content"-->
+            <!--        android:src="@drawable/setting"-->
+            <!--        app:layout_constraintStart_toStartOf="parent"-->
+            <!--        app:layout_constraintTop_toTopOf="parent" />-->
+        </LinearLayout>
+
+
+        <LinearLayout
+
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="10dp"
+            android:layout_weight="68.22"
+            android:orientation="horizontal"
+            android:weightSum="96"
+            tools:ignore="Suspicious0dp">
 
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:weightSum="5">
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="40"
+                android:orientation="vertical"
+                android:weightSum="50">
 
 
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/card_1_num"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="2.5"
-                    app:cardBackgroundColor="@color/white"
-                    app:cardCornerRadius="8dp"
-                    app:strokeColor="@color/white">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="6"
+                    android:orientation="horizontal"
+                    android:weightSum="5">
 
 
-                    <TextView
-                        android:id="@+id/no_current"
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/card_1_num"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="2.5"
+                        app:cardBackgroundColor="@color/white"
+                        app:cardCornerRadius="8dp"
+                        app:strokeColor="@color/white">
+
+
+                        <TextView
+                            android:id="@+id/no_current"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:gravity="center"
+                            android:text="Counter"
+                            android:textColor="@color/green"
+                            android:textSize="32sp"
+                            android:textStyle="bold" />
+                    </com.google.android.material.card.MaterialCardView>
+
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/card_name"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:gravity="center"
-                        android:text="Counter"
-                        android:textColor="@color/green"
-                        android:textSize="32sp"
-                        android:textStyle="bold" />
-                </com.google.android.material.card.MaterialCardView>
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="5dp"
+                        android:layout_weight="2.5"
+                        app:cardBackgroundColor="@color/white"
+                        app:cardCornerRadius="8dp"
+                        app:strokeColor="@color/white">
+
+                        <!--                    <LinearLayout-->
+                        <!--                        android:layout_width="match_parent"-->
+                        <!--                        android:layout_height="match_parent"-->
+                        <!--                        android:orientation="horizontal"-->
+                        <!--                        android:layout_gravity="center"-->
+                        <!--                        android:gravity="center"-->
+                        <!--                        android:weightSum="3"-->
+                        <!--                        >-->
+
+                        <!--                        <com.google.android.material.card.MaterialCardView-->
+                        <!--                            android:id="@+id/card_ticket_number"-->
+                        <!--                            android:layout_width="0dp"-->
+                        <!--                            android:layout_height="match_parent"-->
+                        <!--                            android:layout_weight="1.5"-->
+                        <!--                            app:cardBackgroundColor="#2602A800"-->
+                        <!--                            app:cardCornerRadius="8dp"-->
+                        <!--                            app:strokeColor="#2602A800"-->
+                        <!--                            >-->
+
+                        <TextView
+                            android:id="@+id/title_current"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:gravity="center"
+                            android:text="-"
+                            android:textColor="@color/green"
+                            android:textSize="35sp"
+                            android:textStyle="bold" />
+
+                        <!--                        </com.google.android.material.card.MaterialCardView>-->
 
 
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/card_name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
+                        <!--                        <TextView-->
+                        <!--                            android:id="@+id/title_current_2"-->
+                        <!--                            android:layout_width="0dp"-->
+                        <!--                            android:layout_height="wrap_content"-->
+                        <!--                            android:layout_gravity="center"-->
+                        <!--                            android:layout_weight="1.5"-->
+                        <!--                            android:layout_marginTop="2dp"-->
+                        <!--                            android:layout_marginBottom="2dp"-->
+                        <!--                            android:gravity="center"-->
+                        <!--                            android:layout_marginEnd="3dp"-->
+                        <!--                            android:text="تذكرة / Ticket "-->
+                        <!--                            android:textColor="@color/green"-->
+                        <!--                            android:textSize="27sp"-->
+                        <!--                            android:textStyle="bold" />-->
+                        <!--                    </LinearLayout>-->
+                    </com.google.android.material.card.MaterialCardView>
+
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_weight="43"
+                    >
+
+                    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginTop="2dp"
+
+                        >
+
+
+                        <!--            <androidx.viewpager2.widget.ViewPager2-->
+                        <!--                android:id="@+id/viewPager"-->
+                        <!--                android:layout_width="match_parent"-->
+                        <!--                android:layout_height="match_parent"-->
+                        <!--                android:layout_alignParentStart="true"-->
+                        <!--                android:layout_alignParentTop="true"-->
+                        <!--                android:layout_alignParentEnd="true"-->
+                        <!--                android:layout_alignParentBottom="true" />-->
+
+                        <!--                <VideoView-->
+                        <!--                    android:id="@+id/videoView"-->
+                        <!--                    android:layout_width="match_parent"-->
+                        <!--                    android:layout_height="match_parent"-->
+                        <!--                    android:layout_alignParentTop="true"-->
+                        <!--                    android:layout_alignParentBottom="true"-->
+                        <!--                    android:layout_alignParentStart="true"-->
+                        <!--                    android:layout_alignParentEnd="true"/>-->
+                        <androidx.viewpager2.widget.ViewPager2
+                            android:background="@color/white"
+                            android:id="@+id/viewPager"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:visibility="visible"
+                            android:adjustViewBounds="true"
+                            android:scaleType="fitXY"
+                            />
+
+<!--                        <ImageView-->
+<!--                            android:id="@+id/img_current"-->
+<!--                            android:layout_width="match_parent"-->
+<!--                            android:layout_height="match_parent"-->
+<!--                            android:adjustViewBounds="true"-->
+<!--                            android:scaleType="fitXY" />-->
+
+                    </RelativeLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_marginEnd="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="5dp"
+                android:layout_weight="56"
+                android:orientation="vertical"
+                android:weightSum="50">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="6"
                     android:layout_marginStart="5dp"
-                    android:layout_weight="2.5"
-                    app:cardBackgroundColor="@color/white"
-                    app:cardCornerRadius="8dp"
-                    app:strokeColor="@color/white">
+                    android:orientation="horizontal"
+                    android:weightSum="5">
 
-                    <!--                    <LinearLayout-->
-                    <!--                        android:layout_width="match_parent"-->
-                    <!--                        android:layout_height="match_parent"-->
-                    <!--                        android:orientation="horizontal"-->
-                    <!--                        android:layout_gravity="center"-->
-                    <!--                        android:gravity="center"-->
-                    <!--                        android:weightSum="3"-->
-                    <!--                        >-->
-
-                    <!--                        <com.google.android.material.card.MaterialCardView-->
-                    <!--                            android:id="@+id/card_ticket_number"-->
-                    <!--                            android:layout_width="0dp"-->
-                    <!--                            android:layout_height="match_parent"-->
-                    <!--                            android:layout_weight="1.5"-->
-                    <!--                            app:cardBackgroundColor="#2602A800"-->
-                    <!--                            app:cardCornerRadius="8dp"-->
-                    <!--                            app:strokeColor="#2602A800"-->
-                    <!--                            >-->
-
-                    <TextView
-                        android:id="@+id/title_current"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:gravity="center"
-                        android:text="-"
-                        android:textColor="@color/green"
-                        android:textSize="35sp"
-                        android:textStyle="bold" />
-
-                    <!--                        </com.google.android.material.card.MaterialCardView>-->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/card_2_num"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="2.5"
+                        app:cardBackgroundColor="@color/green"
+                        app:cardCornerRadius="8dp"
+                        app:strokeColor="@color/green">
 
 
-                    <!--                        <TextView-->
-                    <!--                            android:id="@+id/title_current_2"-->
-                    <!--                            android:layout_width="0dp"-->
-                    <!--                            android:layout_height="wrap_content"-->
-                    <!--                            android:layout_gravity="center"-->
-                    <!--                            android:layout_weight="1.5"-->
-                    <!--                            android:layout_marginTop="2dp"-->
-                    <!--                            android:layout_marginBottom="2dp"-->
-                    <!--                            android:gravity="center"-->
-                    <!--                            android:layout_marginEnd="3dp"-->
-                    <!--                            android:text="تذكرة / Ticket "-->
-                    <!--                            android:textColor="@color/green"-->
-                    <!--                            android:textSize="27sp"-->
-                    <!--                            android:textStyle="bold" />-->
-                    <!--                    </LinearLayout>-->
-                </com.google.android.material.card.MaterialCardView>
+                        <TextView
+                            android:id="@+id/title_counter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:gravity="center"
+                            android:padding="4dp"
+                            android:text="Counter / شباك"
+                            android:textColor="@color/white"
+                            android:textSize="25sp"
+                            android:textStyle="bold" />
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/card_name_2"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="5dp"
+                        android:layout_weight="2.5"
+                        app:cardBackgroundColor="@color/green"
+                        app:cardCornerRadius="8dp"
+                        app:strokeColor="@color/green">
+
+                        <TextView
+                            android:id="@+id/ticket_number_title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:gravity="center"
+                            android:padding="4dp"
+                            android:text="رقم التذكرة / #Ticket "
+                            android:textColor="@color/white"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+                    </com.google.android.material.card.MaterialCardView>
+
+
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_marginTop="7dp"
+                    android:layout_marginStart="5dp"
+                    android:layout_weight="43">
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recyclerView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                </LinearLayout>
 
             </LinearLayout>
 
         </LinearLayout>
 
 
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_marginStart="5dp"
-            android:layout_weight="1"
-            android:orientation="horizontal"
-            android:weightSum="5">
-
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_2_num"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="2.5"
-                app:cardBackgroundColor="@color/green"
-                app:cardCornerRadius="8dp"
-                app:strokeColor="@color/green">
-
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:gravity="center"
-                    android:padding="4dp"
-                    android:text="Counter / شباك"
-                    android:textColor="@color/white"
-                    android:textSize="25sp"
-                    android:textStyle="bold" />
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_name_2"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginStart="5dp"
-                android:layout_weight="2.5"
-                app:cardBackgroundColor="@color/green"
-                app:cardCornerRadius="8dp"
-                app:strokeColor="@color/green">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:gravity="center"
-                    android:padding="4dp"
-                    android:text="رقم التذكرة / #Ticket "
-                    android:textColor="@color/white"
-                    android:textSize="25sp"
-                    android:textStyle="bold" />
-            </com.google.android.material.card.MaterialCardView>
-
-        </LinearLayout>
-    </LinearLayout>
-
-
-    <LinearLayout
-        android:id="@+id/layout_9"
-        android:layout_width="match_parent"
-        android:layout_height="330dp"
-        android:layout_marginStart="5dp"
-        android:layout_marginTop="7dp"
-        android:layout_marginEnd="5dp"
-        android:layout_marginBottom="20dp"
-        android:gravity="top"
-        android:orientation="horizontal"
-        android:weightSum="2"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/first_layout">
-
-
-        <!-- VideoView stretched to fill the entire space -->
-
-
-        <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-            android:layout_width="0dp"
-            android:layout_height="335dp"
-            android:layout_marginTop="1dp"
-            android:layout_weight="1">
-
-
-<!--            <androidx.viewpager2.widget.ViewPager2-->
-<!--                android:id="@+id/viewPager"-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="match_parent"-->
-<!--                android:layout_alignParentStart="true"-->
-<!--                android:layout_alignParentTop="true"-->
-<!--                android:layout_alignParentEnd="true"-->
-<!--                android:layout_alignParentBottom="true" />-->
-
-            <!--                <VideoView-->
-            <!--                    android:id="@+id/videoView"-->
-            <!--                    android:layout_width="match_parent"-->
-            <!--                    android:layout_height="match_parent"-->
-            <!--                    android:layout_alignParentTop="true"-->
-            <!--                    android:layout_alignParentBottom="true"-->
-            <!--                    android:layout_alignParentStart="true"-->
-            <!--                    android:layout_alignParentEnd="true"/>-->
-
-
-                            <ImageView
-                                android:id="@+id/img_current"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:adjustViewBounds="true"
-                                android:scaleType="fitXY"
-                                />
-
-        </RelativeLayout>
-
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_marginStart="5dp"
-            android:layout_weight="1"
-            android:orientation="horizontal"
-            android:weightSum="5">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-        </LinearLayout>
-
-    </LinearLayout>
-
-
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/last_card"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="5dp"
-        android:layout_marginEnd="5dp"
-        app:cardBackgroundColor="@color/white"
-        app:cardCornerRadius="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:strokeColor="@color/white">
-
-        <LinearLayout
-            android:id="@+id/marquee_layout"
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/last_card"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/white"
-            android:gravity="center"
-            android:orientation="vertical"
+            android:layout_height="0dp"
+            android:layout_gravity="center"
+            android:layout_weight="10.85"
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="8dp"
+            app:strokeColor="@color/white">
 
-            >
-
-            <TextView
-                android:id="@+id/englishText"
+            <LinearLayout
+                android:id="@+id/marquee_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="start"
-                android:ellipsize="marquee"
-                android:paddingStart="5dp"
-                android:paddingEnd="5dp"
-                android:singleLine="true"
-                android:textColor="@color/black"
-                android:textSize="18sp"
-                tools:text="This is a long example of English text that is designed to scroll continuously from left to right" />
+                android:background="@color/white"
+                android:gravity="center"
+                android:orientation="vertical"
+
+                >
+
+                <TextView
+                    android:fontFamily="@font/arial"
+                    android:id="@+id/englishText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start"
+                    android:ellipsize="marquee"
+                    android:paddingStart="5dp"
+                    android:paddingEnd="5dp"
+                    android:singleLine="true"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
+                    tools:text="This is a long example of English text that is designed to scroll continuously from left to right" />
 
 
-            <TextView
-                android:id="@+id/arabicText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:ellipsize="marquee"
-                android:padding="1dp"
-                android:paddingStart="5dp"
-                android:paddingEnd="5dp"
-                android:singleLine="true"
-                android:textColor="@color/black"
-                android:textSize="18sp"
-                app:layout_constraintBottom_toTopOf="@id/marquee_layout"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                tools:text="هذا مثال طويل لنص باللغة العربية مصمم للتمرير بشكل مستمر من اليمين إلى اليسار." />
+                <TextView
+                    android:id="@+id/arabicText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:ellipsize="marquee"
+                    android:padding="1dp"
+                    android:paddingStart="5dp"
+                    android:fontFamily="@font/gedinartwomedium1e"
+                    android:paddingEnd="5dp"
+                    android:singleLine="true"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
+                    app:layout_constraintBottom_toTopOf="@id/marquee_layout"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    tools:text="هذا مثال طويل لنص باللغة العربية مصمم للتمرير بشكل مستمر من اليمين إلى اليسار." />
 
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -2,6 +2,7 @@ package com.example.slaughterhousescreen.network
 
 import com.example.slaughterhousescreen.data.CurrentQ
 import com.example.slaughterhousescreen.data.CurrentTicket
+import com.example.slaughterhousescreen.data.DeviceConfiguration
 import com.example.slaughterhousescreen.data.FileURL
 import com.example.slaughterhousescreen.data.ImagesResponse
 import com.example.slaughterhousescreen.data.ScrollMessages
@@ -46,9 +47,16 @@ interface ApiService {
     ) : TimeResponse
 
 
+    @GET("api/AndriodGetDevicesConfigration")
+    suspend fun getDeviceConfiguration(
+        @Query("branchid") branchid: String ,
+        @Query("Deviceid") Deviceid: String ,
+        @Query("baseURL") baseURL: String
+    ): DeviceConfiguration
+
     @GET("api/GetVideoImageBoard")
     suspend fun getImagesAndVideos(
-        @Query("BaseURL") baseURL: String
+        @Query("BaseURL") baseURL: String,
+        @Query("BranchCode") branchCode: String ,
     ) : List<FileURL>
-
 }

@@ -4,6 +4,8 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
+import android.graphics.Color
+import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.media.MediaPlayer
 import android.net.Uri
@@ -19,6 +21,7 @@ import android.view.animation.LinearInterpolator
 import android.widget.TextView
 import android.widget.Toast
 import android.widget.VideoView
+import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -30,6 +33,7 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.signature.ObjectKey
 import com.example.slaughterhousescreen.R
 import com.example.slaughterhousescreen.data.CurrentQ
@@ -43,10 +47,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.bumptech.glide.request.target.Target
+import com.bumptech.glide.request.transition.Transition
+import com.example.slaughterhousescreen.DisplayMetricsHelper
 import com.example.slaughterhousescreen.data.FileURL
 
 
 import com.example.slaughterhousescreen.viewmodel.CurrentTimeViewModel
+import com.example.slaughterhousescreen.viewmodel.DeviceConfigurationViewModel
 import com.example.slaughterhousescreen.viewmodel.GetImagesViewModel
 import com.example.slaughterhousescreen.viewmodel.ImagesAndVideosViewModel
 
@@ -59,18 +66,21 @@ class HomeFragment : Fragment() {
     private lateinit var getImagesViewModel: GetImagesViewModel
     private lateinit var getCurrentTimeViewModel: CurrentTimeViewModel
     private lateinit var imagesAndVideosViewModel: ImagesAndVideosViewModel
+    private lateinit var deviceConfigurationViewModel: DeviceConfigurationViewModel
+    private var filesList : List<FileURL> ?=null
 
+    private var selectedDeviceType: String? = null
 
-   // private val ticketQueue: MutableList<Pair<String?, Int?>> = mutableListOf()
+    // private val ticketQueue: MutableList<Pair<String?, Int?>> = mutableListOf()
 
-   private var isArabicAudioPlaying = false
+    private var isArabicAudioPlaying = false
     private val ticketQueue: MutableList<Triple<String?, Int?, Int>> = mutableListOf()
     private var isProcessingMultiLang = false // To manage `id = 3`
     private var isEnglishAudioPlaying = false
     private val englishTicketQueue: MutableList<Pair<String?, Int?>> = mutableListOf()
 
 
-    private var videoView : VideoView ?=null
+    private var videoView: VideoView? = null
     private val handlerImg = Handler(Looper.getMainLooper())
     private var imageIndex = 0
 
@@ -80,15 +90,17 @@ class HomeFragment : Fragment() {
     private val mediaList = mutableListOf<FileURL>()
 
 
-    var currentQAdapter: TicketAdapter? = null
+    private var currentQAdapter: TicketAdapter? = null
+    private var cardBgColor: String? = null
+    private var fontColor: Int? = null
+
     var branchCode: String? = null
-   // var displayNumber: String? = null
+    // var displayNumber: String? = null
 
     private var mediaPlayer: MediaPlayer? = null // Declare a MediaPlayer variable
     private val audioQueue: MutableList<Int> = mutableListOf()
 
     private val englishAudioQueue: MutableList<Int> = mutableListOf()
-
 
 
 //    private val screenHandler = Handler()
@@ -111,11 +123,11 @@ class HomeFragment : Fragment() {
 
             if (!isArabicAudioPlaying && !isEnglishAudioPlaying && !isProcessingMultiLang) {
                 // Skip API calls if Arabic audio is playing
-                    callCurrentTicketApi()
-                }
+                callCurrentTicketApi()
+            }
 
             handler.postDelayed(this, refreshInterval) // Schedule next execution
-         //   screenHandler.postDelayed(this, screenRefreshInterval) // Schedule next execution
+            //   screenHandler.postDelayed(this, screenRefreshInterval) // Schedule next execution
 
         }
     }
@@ -136,8 +148,19 @@ class HomeFragment : Fragment() {
     // New runnable for refreshing the current time API
     private val timeRefreshRunnable = object : Runnable {
         override fun run() {
-            callCurrentTimeApi() // Call the current time API every 1 minute
-            timeRefreshHandler.postDelayed(this, timeRefreshInterval) // Schedule next execution
+            callCurrentTimeApi()
+            timeRefreshHandler.postDelayed(this, timeRefreshInterval)
+        }
+    }
+
+
+    private val configurationHandler = Handler()
+    private val refreshConfigurationInterval = 20000L
+
+    private val configurationRunnable = object : Runnable {
+        override fun run() {
+            callDeviceConfigurationAPI()
+            configurationHandler.postDelayed(this, refreshConfigurationInterval)
         }
     }
 
@@ -154,14 +177,18 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        selectedDeviceType = PreferenceManager.getSelectedDevice(requireContext())
+
+        updateTicketSize()
+
         englishTextView = binding.englishText
         arabicTextView = binding.arabicText
 
         requireActivity().window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-     //   viewPager = binding.viewPager
+        //   viewPager = binding.viewPager
 
         branchCode = PreferenceManager.getBranchCode(requireContext())
-    //    displayNumber = PreferenceManager.getDisplayNumber(requireContext())
+        //    displayNumber = PreferenceManager.getDisplayNumber(requireContext())
 
         val factory = GenericViewModelFactory(ScrollMessagesViewModel::class) {
             ScrollMessagesViewModel(requireContext())
@@ -203,6 +230,16 @@ class HomeFragment : Fragment() {
         imagesAndVideosViewModel =
             ViewModelProvider(this, getFilesFactory).get(ImagesAndVideosViewModel::class.java)
 
+        val getDeviceConfigurationFactory =
+            GenericViewModelFactory(DeviceConfigurationViewModel::class) {
+                DeviceConfigurationViewModel(requireContext())
+            }
+
+        deviceConfigurationViewModel = ViewModelProvider(
+            this,
+            getDeviceConfigurationFactory
+        ).get(DeviceConfigurationViewModel::class.java)
+
         callGetImagesApi()
         observerGetImagesViewModel()
         callCurrentTicketApi()
@@ -213,13 +250,21 @@ class HomeFragment : Fragment() {
         observerScrollMsgsViewModel()
         callCurrentTimeApi()
         observerCurrentTimeViewModel()
-//        callGetImagesAndVideosApi()
-//        observerImagesAndVideosViewModel()
+        callGetImagesAndVideosApi()
+        observerImagesAndVideosViewModel()
+        callDeviceConfigurationAPI()
+        observerDeviceConfigurationAPI()
 
-        setupMarquee(arabicTextView, true , 55000L)   // Arabic text (right to left)
-        setupMarquee(englishTextView, false,45000L)
+        setupMarquee(arabicTextView, true, 55000L)   // Arabic text (right to left)
+        setupMarquee(englishTextView, false, 45000L)
 
         binding.logo.setOnClickListener {
+            PreferenceManager.clearUrl(requireContext())
+            PreferenceManager.setURl(requireContext(), false)
+            findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToFirstFragment())
+        }
+
+        binding.ticketNumberTitle.setOnClickListener {
             PreferenceManager.clearUrl(requireContext())
             PreferenceManager.setURl(requireContext(), false)
             findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToFirstFragment())
@@ -232,17 +277,18 @@ class HomeFragment : Fragment() {
             findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToFirstFragment())
         }
 
-      //  getCurrentDateAndTime()
+        //  getCurrentDateAndTime()
 
         handler.post(runnable) // Start the auto-refresh for APIs
+        configurationHandler.post(configurationRunnable)
 
 
-  //      screenHandler.post(runnable) // Start the screen refresh
+        //      screenHandler.post(runnable) // Start the screen refresh
 
         startMarqueeApiCall() // Start calling the marquee API every 10 minutes
 
 
- //       videoView = binding.videoView
+        //       videoView = binding.videoView
 //        val videoUrl = "http://192.168.30.50/APIPub2509/Video/Test.mp4"
 //
 //        videoView.setVideoPath(videoUrl)
@@ -253,15 +299,204 @@ class HomeFragment : Fragment() {
 
     }
 
+    override fun onResume() {
+        super.onResume()
+        updateTicketSize()
+    }
+
+    private fun updateTicketSize() {
+        Log.v("device type" , selectedDeviceType?:"")
+
+        when (selectedDeviceType) {
+            "smartTV" -> {
+                binding.arabicText.textSize = 18f
+                binding.englishText.textSize = 18f
+                binding.tvTime.textSize = 36f
+                binding.titleCurrent.textSize = 35f
+                binding.noCurrent.textSize = 28f
+                binding.titleCounter.textSize = 23f
+                binding.ticketNumberTitle.textSize = 23f
+            }
+
+            "mediaPlayer" -> {
+                binding.arabicText.textSize = 27f
+                binding.englishText.textSize = 27f
+                binding.tvTime.textSize = 54f
+                binding.titleCurrent.textSize = 48f
+                binding.noCurrent.textSize = 34f
+                binding.titleCounter.textSize = 30f
+                binding.ticketNumberTitle.textSize = 30f
+            }
+        }
+    }
+
+    private fun callDeviceConfigurationAPI() {
+        val deviceId = "2"
+        val baseUrl = PreferenceManager.getBaseUrl(requireContext())
+
+        //    baseUrl  = "http://192.168.30.50/APIPub2509/"
+
+        CoroutineScope(Dispatchers.IO).launch {
+            deviceConfigurationViewModel.getDeviceConfiguration(
+                branchCode ?: "",
+                deviceId ?: "",
+                baseUrl ?: ""
+            )
+        }
+    }
+
+    @SuppressLint("DiscouragedApi")
+    private fun observerDeviceConfigurationAPI() {
+        deviceConfigurationViewModel.getDeviceConfigurationResponse.observe(viewLifecycleOwner) { deviceConfiguration ->
+
+            cardBgColor = deviceConfiguration.ButtonColor
+            fontColor = try {
+                Color.parseColor(deviceConfiguration.FontColor ?: "#000000") // Default to black
+            } catch (e: Exception) {
+                Color.BLACK // Fallback color
+            }
+
+            val fontName = deviceConfiguration.FontType ?: "Arial"
+            val boldFont = "${fontName}bold"
+            Log.v("fonttttt", boldFont)
+
+            try {
+                val fontResId =
+                    resources.getIdentifier(fontName, "font", requireContext().packageName)
+                val fontResIdBold =
+                    resources.getIdentifier(boldFont, "font", requireContext().packageName)
+
+
+                if (fontResId != 0) {
+                    val typeface = ResourcesCompat.getFont(requireContext(), fontResId)
+                    val boldTypeFace = ResourcesCompat.getFont(requireContext(), fontResIdBold)
+                    binding.tvTime.typeface = boldTypeFace
+                    binding.noCurrent.typeface = boldTypeFace
+                    binding.titleCurrent.typeface = boldTypeFace
+                    binding.titleCounter.typeface = boldTypeFace
+                    binding.ticketNumberTitle.typeface = boldTypeFace
+
+
+                } else {
+                    binding.tvTime.typeface = Typeface.DEFAULT_BOLD
+                    binding.noCurrent.typeface = Typeface.DEFAULT_BOLD
+                    binding.titleCurrent.typeface = Typeface.DEFAULT_BOLD
+                    binding.titleCounter.typeface = Typeface.DEFAULT_BOLD
+                    binding.ticketNumberTitle.typeface = Typeface.DEFAULT_BOLD
+
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                binding.tvTime.typeface = Typeface.DEFAULT_BOLD
+                binding.noCurrent.typeface = Typeface.DEFAULT_BOLD
+                binding.titleCurrent.typeface = Typeface.DEFAULT_BOLD
+                binding.titleCounter.typeface = Typeface.DEFAULT_BOLD
+                binding.ticketNumberTitle.typeface = Typeface.DEFAULT_BOLD
+
+            }
+
+
+            val bgFlag = deviceConfiguration.ysnBGColor
+
+            if (bgFlag == "True") {
+                val backgroundColor = Color.parseColor(deviceConfiguration.BGColor)
+                binding.firstLayout.setBackgroundColor(backgroundColor)
+
+            } else {
+                Glide.with(requireContext())
+                    .asDrawable() // Load the image as a Drawable
+                    .load(deviceConfiguration.BGImage) // Load the BGImage from the API
+                    .skipMemoryCache(true) // Skip memory caching
+                    .diskCacheStrategy(DiskCacheStrategy.NONE) // Skip disk caching
+                    .signature(ObjectKey(System.currentTimeMillis().toString())) // Force reload
+                    .into(object : CustomTarget<Drawable>() {
+                        override fun onResourceReady(
+                            resource: Drawable,
+                            transition: Transition<in Drawable>?
+                        ) {
+                            // Set the loaded image as the background for the ConstraintLayout
+                            binding.firstLayout.background = resource
+                        }
+
+                        override fun onLoadCleared(placeholder: Drawable?) {
+                            // Optional: Handle cleanup if needed
+                        }
+                    })
+            }
+
+
+            binding.tvTime.setTextColor(fontColor ?: -1)
+            binding.noCurrent.setTextColor(fontColor ?: -1)
+            binding.titleCurrent.setTextColor(fontColor ?: -1)
+            binding.card2Num.setCardBackgroundColor(fontColor ?: -1)
+            binding.cardName2.setCardBackgroundColor(fontColor ?: -1)
+            binding.cardName2.setStrokeColor(fontColor ?: -1)
+            binding.card2Num.setStrokeColor(fontColor ?: -1)
+
+
+
+            try {
+                val fontResId =
+                    resources.getIdentifier(fontName, "font", requireContext().packageName)
+
+                if (fontResId != 0) {
+                    // Load the font and set it to the TextView
+                    val typeface = ResourcesCompat.getFont(requireContext(), fontResId)
+//                    binding.tvCounterTitle.typeface = typeface
+//                    binding.tvCounterTitleAr.typeface = typeface
+//                    binding.ticketNo.typeface = typeface
+//                    binding.ticketNoAr.typeface = typeface
+
+
+                } else {
+                    // Fallback if the font is not found
+//                    binding.tvCounterTitle.typeface = Typeface.DEFAULT
+//                    binding.tvCounterTitleAr.typeface = Typeface.DEFAULT
+//                    binding.ticketNo.typeface = Typeface.DEFAULT
+//                    binding.ticketNoAr.typeface = Typeface.DEFAULT
+
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                // Handle errors gracefully, and fallback to a default typeface
+//                binding.tvCounterTitle.typeface = Typeface.DEFAULT
+//                binding.tvCounterTitleAr.typeface = Typeface.DEFAULT
+//                binding.ticketNo.typeface = Typeface.DEFAULT
+//                binding.ticketNoAr.typeface = Typeface.DEFAULT
+            }
+
+
+//            Glide.with(requireContext())
+//                .load(deviceConfiguration.LogoImage)
+//                .skipMemoryCache(true) // Skip memory caching
+//                .diskCacheStrategy(DiskCacheStrategy.NONE) // Skip disk caching
+//                .signature(ObjectKey(System.currentTimeMillis().toString())) // Force reload
+//                .load(deviceConfiguration.LogoImage)
+//                .into(binding.logo)
+
+
+            //     PreferenceManager.setDeviceConfigurationApiFlag(true, requireContext())
+
+
+        }
+        deviceConfigurationViewModel.errorResponse.observe(viewLifecycleOwner) {
+            Log.v("error", "error")
+        }
+    }
+
+
     private fun callGetImagesAndVideosApi() {
         val baseUrl = PreferenceManager.getBaseUrl(requireContext())
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            imagesAndVideosViewModel.getImagesAndVideos(baseUrl?:"")
+            imagesAndVideosViewModel.getImagesAndVideos(baseUrl ?: "" , branchCode?:"")
         }
     }
+
     private fun observerImagesAndVideosViewModel()
     {
         imagesAndVideosViewModel.urlsResponse.observe(viewLifecycleOwner) { fileList ->
+            filesList = fileList
+
             if (!fileList.isNullOrEmpty()) {
                 setupViewPager(fileList)
             } else {
@@ -271,34 +506,79 @@ class HomeFragment : Fragment() {
 
         imagesAndVideosViewModel.errorResponse.observe(viewLifecycleOwner) {
             Log.e("observeMediaList", "Error fetching media list: $it")
+
+
         }
     }
+    private var imagesVideosHandler: Handler? = null
+    private var imagesVideosRunnable: Runnable? = null
 
     private fun setupViewPager(fileList: List<FileURL>) {
-        val mediaAdapter = MediaAdapter(requireContext(), fileList)
-      //  binding.viewPager.adapter = mediaAdapter
-
-        val handler = Handler(Looper.getMainLooper())
-        val runnable = object : Runnable {
-            var currentItem = 0
-
-            override fun run() {
-                val interval = calculateDuration(fileList[currentItem])
-             //   binding.viewPager.setCurrentItem(currentItem, true)
-                currentItem = (currentItem + 1) % fileList.size // Loop back to the start
-                handler.postDelayed(this, interval)
-            }
-        }
-        handler.postDelayed(runnable, calculateDuration(fileList[0]))
-    }
-
-    private fun calculateDuration(file: FileURL): Long {
-        return if (isVideo(file.fileName ?: "")) {
-            60000L // 1 minute for video
+        if (fileList.isEmpty()) {
+            // Handle empty list case
+        Log.v("list is empty", "list is empty")
         } else {
-            10000L // 10 seconds for image
+            // Step 1: Sort files by the `OrderNo` field
+            val orderedMediaList = fileList
+                .filter { it.fileName != null && it.OrderNo != null }
+                .sortedBy { it.OrderNo }
+
+            Log.d("OrderedMediaList", "Ordered media list: ${orderedMediaList.joinToString { it.fileName ?: "null" }}")
+
+            // Step 2: Set up ViewPager adapter
+            val mediaAdapter = MediaAdapter(
+                requireContext(),
+                orderedMediaList,
+                binding.viewPager
+            )
+            binding.viewPager.adapter = mediaAdapter
+
+            // Step 3: Clear previous Handler and Runnable
+            imagesVideosHandler?.removeCallbacksAndMessages(null)
+            imagesVideosHandler = Handler(Looper.getMainLooper())
+
+            // Step 4: Use OnPageChangeListener to start the duration count after the item is fully displayed
+            binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+                override fun onPageSelected(position: Int) {
+                    super.onPageSelected(position)
+
+                    // Get the current media item
+                    val currentMedia = orderedMediaList[position]
+                    val duration = calculateDuration(currentMedia)
+
+                    Log.d(
+                        "PageChangeListener",
+                        "Item fully displayed: $position, Duration: $duration ms, File: ${currentMedia.fileName}"
+                    )
+
+                    // Remove any pending callbacks to avoid overlapping
+                    imagesVideosHandler?.removeCallbacksAndMessages(null)
+
+                    // Schedule the next item after the current item's duration
+                    imagesVideosHandler?.postDelayed({
+                        // Move to the next item
+                        val nextItem = (position + 1) % orderedMediaList.size
+                        binding.viewPager.setCurrentItem(nextItem, true)
+                    }, duration)
+                }
+            })
+
+            // Step 5: Display the first item immediately
+            binding.viewPager.setCurrentItem(0, true)
         }
     }
+    private fun calculateDuration(file: FileURL): Long {
+        return try {
+            // Use the duration from the API (must be a valid positive number)
+            file.Duration?.toLongOrNull()?.takeIf { it > 0 }
+                ?: throw IllegalArgumentException("Invalid duration for file: ${file.fileName}")
+        } catch (e: Exception) {
+            Log.e("MediaAdapter", "Error calculating duration for file: ${file.fileName}.", e)
+            throw e // Re-throw the exception to ensure the issue is not ignored
+        }
+    }
+
+
 
     private fun isVideo(fileName: String): Boolean {
         val videoExtensions = listOf(".mp4", ".mov", ".avi", ".mkv")
@@ -308,13 +588,15 @@ class HomeFragment : Fragment() {
 
     private fun observerCurrentTimeViewModel() {
 
-        getCurrentTimeViewModel.timeResponse.observe(viewLifecycleOwner){timeResponse->
+        getCurrentTimeViewModel.timeResponse.observe(viewLifecycleOwner) { timeResponse ->
             binding.tvTime.text = timeResponse.msgEn
+
+
         }
 
 
         getCurrentTimeViewModel.errorResponse.observe(viewLifecycleOwner) {
-           Log.v("error","error")
+            Log.v("error", "error")
         }
 
     }
@@ -322,7 +604,8 @@ class HomeFragment : Fragment() {
     private fun callCurrentTimeApi() {
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             getCurrentTimeViewModel.getCurrentTime()
-        }    }
+        }
+    }
 
     private fun startMarqueeApiCall() {
         scrollMsgsHandler.post(scrollMsgsRunnable) // Start the marquee API refresh loop
@@ -348,15 +631,21 @@ class HomeFragment : Fragment() {
 
     override fun onStart() {
         super.onStart()
+
         handler.post(runnable) // Start the auto-refresh when fragment is visible
-        timeRefreshHandler.postDelayed(timeRefreshRunnable, timeRefreshInterval) // Start time refresh
-  //      screenHandler.post(runnable) // Start the auto-refresh when fragment is visible
+        timeRefreshHandler.postDelayed(
+            timeRefreshRunnable,
+            timeRefreshInterval
+        ) // Start time refresh
+        //      screenHandler.post(runnable) // Start the auto-refresh when fragment is visible
 
         scrollMsgsHandler.post(scrollMsgsRunnable) // Start the scroll messages refresh every 10 minutes
+        configurationHandler.post(configurationRunnable)
+
     }
 
 
-    private fun setupMarquee(textView: TextView, isArabic: Boolean , durationMarquee : Long) {
+    private fun setupMarquee(textView: TextView, isArabic: Boolean, durationMarquee: Long) {
         textView.post {
             val textWidth = textView.paint.measureText(textView.text.toString())
             val viewWidth = textView.width
@@ -386,16 +675,16 @@ class HomeFragment : Fragment() {
             animator.start()
         }
     }
+
     private fun callGetImagesApi() {
         val baseUrl = PreferenceManager.getBaseUrl(requireContext())
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            getImagesViewModel.getImages(baseUrl?:"" , branchCode?:"")
+            getImagesViewModel.getImages(baseUrl ?: "", branchCode ?: "")
         }
     }
 
     private fun observerGetImagesViewModel() {
         getImagesViewModel.imagesResponse.observe(viewLifecycleOwner) { images ->
-
 
             language = images.language
 
@@ -408,12 +697,12 @@ class HomeFragment : Fragment() {
 
 
 
-            Glide.with(requireContext())
-                .load(images.logoDefault)
-                .skipMemoryCache(true) // Skip memory caching
-                .diskCacheStrategy(DiskCacheStrategy.NONE) // Skip disk caching
-                .signature(ObjectKey(System.currentTimeMillis().toString())) // Force reload
-                .into(binding.imgCurrent)
+//            Glide.with(requireContext())
+//                .load(images.logoClient)
+//                .skipMemoryCache(true) // Skip memory caching
+//                .diskCacheStrategy(DiskCacheStrategy.NONE) // Skip disk caching
+//                .signature(ObjectKey(System.currentTimeMillis().toString())) // Force reload
+//                .into(binding.imgCurrent)
         }
 //
 //            Log.v("imagesssss", images.logoDefault ?: "")
@@ -516,9 +805,6 @@ class HomeFragment : Fragment() {
 //    }
 
 
-
-
-
     private fun callCurrentTicketApi() {
 
         if (!isArabicAudioPlaying) {
@@ -526,13 +812,12 @@ class HomeFragment : Fragment() {
             if (!isEnglishAudioPlaying) {
                 viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                     currentTicketViewModel.getCurrentTicket(
-                        branchCode ?: "", "1"
+                        branchCode ?: "", "9"
                         //    ,displayNumber?:""
                     )
                 }
             }
-        }
-        else {
+        } else {
             Log.d("APIRequest", "Waiting for audio playback to finish before calling API.")
         }
     }
@@ -540,10 +825,12 @@ class HomeFragment : Fragment() {
 
     @SuppressLint("SetTextI18n")
     private fun observerCurrentTicketViewModel() {
+
+
         currentTicketViewModel.currentTicket.observe(viewLifecycleOwner) { currentTicket ->
             val ticketNumber = currentTicket.TicketNo
-            val counterId = currentTicket.CounterId?.toInt()
-            val languageId = language?.toInt()
+            val counterId = currentTicket.CounterId?.trim()?.toIntOrNull() ?: 0
+            val languageId = language?.toIntOrNull() ?: 1
 
             if (languageId != null) {
                 enqueueTicket(ticketNumber, counterId, languageId)
@@ -558,7 +845,7 @@ class HomeFragment : Fragment() {
             // Log the image path
             Log.d("ImagePath", currentTicket.Path ?: "")
 
-         //   binding.imgCurrent.setImageResource(R.drawable.placeholder) // Set placeholder
+            //   binding.imgCurrent.setImageResource(R.drawable.placeholder) // Set placeholder
 
 //            Glide.with(this)
 //                .load(currentTicket.Path)
@@ -588,6 +875,11 @@ class HomeFragment : Fragment() {
 //                    }
 //                })
 //                .into(binding.imgCurrent)
+
+        }
+
+        currentTicketViewModel.errorResponse.observe(viewLifecycleOwner) {
+            Log.v("error for selected ticket", "error for selected ticket")
 
         }
     }
@@ -625,13 +917,13 @@ class HomeFragment : Fragment() {
 
             binding.titleCurrent.text = ticketNumber
             binding.noCurrent.text = "Counter: $counterId"
-            flashText(binding.titleCurrent, ticketNumber?:"")
+            flashText(binding.titleCurrent, ticketNumber ?: "")
 
 
 
             when (languageId) {
-                1 -> playEnglishAudio(ticketNumber, counterId){    processNextTicket()}
-                2 -> playArabicAudio(ticketNumber, counterId){    processNextTicket()}
+                1 -> playEnglishAudio(ticketNumber, counterId) { processNextTicket() }
+                2 -> playArabicAudio(ticketNumber, counterId) { processNextTicket() }
                 3 -> {
                     isProcessingMultiLang = true
                     playEnglishAudio(ticketNumber, counterId) {
@@ -835,8 +1127,7 @@ class HomeFragment : Fragment() {
                     }
                 }
             }
-        }
-        else if (ticketNumberWithoutPrefixEn in 1000..9999) {
+        } else if (ticketNumberWithoutPrefixEn in 1000..9999) {
             // Split the number into thousands, hundreds, tens, and ones digits
             val thousands = ticketNumberWithoutPrefixEn?.div(1000)  // e.g., 7 for 7366
             val hundreds = (ticketNumberWithoutPrefixEn?.rem(1000))?.div(100)  // e.g., 3 for 7366
@@ -885,7 +1176,10 @@ class HomeFragment : Fragment() {
                 if (lastTwoResourceId != 0) {
                     englishAudioQueue.add(lastTwoResourceId)
                 } else {
-                    Log.e("AudioError", "English audio file not found for: $englishLastTwoAudioFileName")
+                    Log.e(
+                        "AudioError",
+                        "English audio file not found for: $englishLastTwoAudioFileName"
+                    )
                 }
             } else {
 
@@ -1000,7 +1294,11 @@ class HomeFragment : Fragment() {
 
 
     @SuppressLint("DiscouragedApi")
-    private fun playArabicAudio(ticketNumberAudio: String?, counterIdAudio: Int?, onFinish: (() -> Unit)? = null) {
+    private fun playArabicAudio(
+        ticketNumberAudio: String?,
+        counterIdAudio: Int?,
+        onFinish: (() -> Unit)? = null
+    ) {
         // Remove the first character (the "T") and get the number part
         val firstChar = ticketNumberAudio?.firstOrNull()?.lowercaseChar()?.toString()
         val ticketNumberWithoutPrefix = ticketNumberAudio?.substring(1)?.toInt()
@@ -1015,8 +1313,8 @@ class HomeFragment : Fragment() {
 
         audioQueue.clear()
         audioQueue.add(R.raw.doorbell)
-       audioQueue.add(R.raw.ticketar)
-       // audioQueue.add(R.raw.artkt)
+        audioQueue.add(R.raw.ticketar)
+        // audioQueue.add(R.raw.artkt)
 
         // ticket character
         val ticketId = resources.getIdentifier(firstChar, "raw", requireContext().packageName)
@@ -1104,8 +1402,7 @@ class HomeFragment : Fragment() {
                     }
                 }
 
-            }
-            else if (ticketNumberWithoutPrefix in 1000..9999) {
+            } else if (ticketNumberWithoutPrefix in 1000..9999) {
                 // Split the number into thousands, hundreds, tens, and ones digits
                 val thousands = ticketNumberWithoutPrefix.div(1000) // e.g., 7 for 7366
                 val hundreds = (ticketNumberWithoutPrefix.rem(1000)).div(100) // e.g., 3 for 7366
@@ -1116,7 +1413,8 @@ class HomeFragment : Fragment() {
                 // Play audio for thousands
                 if (hundreds == 0 && tens == 0 && ones == 0) {
                     // Exact thousands
-                    val arabicThousandsAudioFileName = "ar${thousands.times(1000)}" // e.g., "ar7000"
+                    val arabicThousandsAudioFileName =
+                        "ar${thousands.times(1000)}" // e.g., "ar7000"
                     val thousandsResourceId = resources.getIdentifier(
                         arabicThousandsAudioFileName,
                         "raw",
@@ -1129,7 +1427,8 @@ class HomeFragment : Fragment() {
                     }
                 } else {
                     // Non-exact thousands
-                    val arabicThousandsAudioFileName = "ar${thousands.times(1000).plus(1)}" // e.g., "ar7001"
+                    val arabicThousandsAudioFileName =
+                        "ar${thousands.times(1000).plus(1)}" // e.g., "ar7001"
                     val thousandsResourceId = resources.getIdentifier(
                         arabicThousandsAudioFileName,
                         "raw",
@@ -1146,7 +1445,8 @@ class HomeFragment : Fragment() {
                 if (hundreds != 0 || tens != 0 || ones != 0) {
                     if (tens == 0 && ones == 0) {
                         // Exact hundreds
-                        val arabicHundredsAudioFileName = "ar${hundreds.times(100)}" // e.g., "ar300"
+                        val arabicHundredsAudioFileName =
+                            "ar${hundreds.times(100)}" // e.g., "ar300"
                         val hundredsResourceId = resources.getIdentifier(
                             arabicHundredsAudioFileName,
                             "raw",
@@ -1159,7 +1459,8 @@ class HomeFragment : Fragment() {
                         }
                     } else {
                         // Non-exact hundreds
-                        val arabicHundredsAudioFileName = "ar${hundreds.times(100).plus(1)}" // e.g., "ar301"
+                        val arabicHundredsAudioFileName =
+                            "ar${hundreds.times(100).plus(1)}" // e.g., "ar301"
                         val hundredsResourceId = resources.getIdentifier(
                             arabicHundredsAudioFileName,
                             "raw",
@@ -1189,9 +1490,9 @@ class HomeFragment : Fragment() {
                 }
             }
         }
-       // audioQueue.add(R.raw.collectionarea)
+        // audioQueue.add(R.raw.collectionarea)
 
-      audioQueue.add(R.raw.arabic)
+        audioQueue.add(R.raw.arabic)
 
         if (counterIdAudio != null) {
             if (counterIdAudio < 100) {
@@ -1206,9 +1507,9 @@ class HomeFragment : Fragment() {
         }
 
         // Start playing the first audio if queue is not empty
-            playNextAudio {
-                isArabicAudioPlaying = false
-                onFinish?.invoke()
+        playNextAudio {
+            isArabicAudioPlaying = false
+            onFinish?.invoke()
         }
     }
 
@@ -1269,12 +1570,18 @@ class HomeFragment : Fragment() {
             binding.arabicText.text = scrollMsgs?.ScrollMessageAr
             binding.englishText.text = scrollMsgs?.ScrollMessageEn
 
+
+
             setupMarquee(arabicTextView, true, 55000L)
             setupMarquee(englishTextView, false, 45000L)
         }
 
         scrollMessagesViewModel.errorResponse.observe(viewLifecycleOwner) {
-            Toast.makeText(requireContext(), "please check your network or the entered info \"Base Url or branch code\"", Toast.LENGTH_SHORT)
+            Toast.makeText(
+                requireContext(),
+                "please check your network or the entered info \"Base Url or branch code\"",
+                Toast.LENGTH_SHORT
+            )
                 .show()
         }
 
@@ -1290,7 +1597,9 @@ class HomeFragment : Fragment() {
 
     fun currentQAdapter(currentQList: List<CurrentQ?>) {
 
-        currentQAdapter = TicketAdapter(currentQList)
+        currentQAdapter =
+            TicketAdapter(currentQList, requireContext(), cardBgColor ?: "", fontColor ?: -1)
+
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerView.adapter = currentQAdapter
 
@@ -1300,7 +1609,7 @@ class HomeFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         audioQueue.clear() // Clear the audio queue
-
+        configurationHandler.removeCallbacksAndMessages(null)
     }
 
     override fun onStop() {
@@ -1308,15 +1617,17 @@ class HomeFragment : Fragment() {
         handler.removeCallbacks(runnable)
         timeRefreshHandler.removeCallbacks(timeRefreshRunnable) // Stop time refresh
         // Stop the auto-refresh when fragment is not visible
-    //    screenHandler.removeCallbacks(runnable) // Stop the auto-refresh when fragment is not visible
+        //    screenHandler.removeCallbacks(runnable) // Stop the auto-refresh when fragment is not visible
 
         scrollMsgsHandler.removeCallbacks(scrollMsgsRunnable) // Stop the scroll messages refresh
+        configurationHandler.removeCallbacks(configurationRunnable)
+
     }
 
     override fun onDestroy() {
         super.onDestroy()
         // Remove any pending callbacks to avoid memory leaks
-    //    timehandler.removeCallbacksAndMessages(null)
+        //    timehandler.removeCallbacksAndMessages(null)
         scrollMsgsHandler.removeCallbacksAndMessages(null)
 
     }

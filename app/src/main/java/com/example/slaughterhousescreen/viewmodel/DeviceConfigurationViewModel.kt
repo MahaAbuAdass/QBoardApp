@@ -5,28 +5,27 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.slaughterhousescreen.data.FileURL
-import com.example.slaughterhousescreen.data.TimeResponse
+import com.example.slaughterhousescreen.data.DeviceConfiguration
 import com.example.slaughterhousescreen.network.RetrofitBuilder
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 
-class ImagesAndVideosViewModel (context: Context) : ViewModel()  {
+class DeviceConfigurationViewModel (context : Context) : ViewModel() {
 
     private val retrofitBuilder = RetrofitBuilder(context)
 
-    private val _urlsResponse = MutableLiveData<List<FileURL>>()
-    val urlsResponse: LiveData<List<FileURL>> = _urlsResponse
-
+    private val _getDeviceConfigurationResponse = MutableLiveData<DeviceConfiguration>()
+    val getDeviceConfigurationResponse: LiveData<DeviceConfiguration> = _getDeviceConfigurationResponse
 
     private val _errorResponse = MutableLiveData<String?>()
     val errorResponse: LiveData<String?> = _errorResponse
 
-    suspend fun getImagesAndVideos(baseUrl:String , branchid: String){
-        viewModelScope.launch {
+    fun getDeviceConfiguration(branchId: String, deviceId: String , baseUrl : String) {
+        viewModelScope.launch (Dispatchers.IO){
             try {
-                val response = retrofitBuilder.getImagesAndVideos(baseUrl,branchid)
-                _urlsResponse.postValue(response)
+                val response = retrofitBuilder.getDeviceConfiguration(branchId, deviceId, baseUrl)
+                _getDeviceConfigurationResponse.postValue(response)
             } catch (e: HttpException){
                 handleHttpException(e)
             } catch (e: Exception) {

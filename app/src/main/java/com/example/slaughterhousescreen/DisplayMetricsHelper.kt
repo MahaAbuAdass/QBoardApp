@@ -15,6 +15,7 @@ object DisplayMetricsHelper {
 
     // Adjust the display metrics to enforce the target size and density
     fun enforceDisplayMetrics(activity: Activity) {
+
         val displayMetrics = DisplayMetrics()
         activity.windowManager.defaultDisplay.getMetrics(displayMetrics)
 
@@ -31,6 +32,17 @@ object DisplayMetricsHelper {
         displayMetrics.heightPixels = TARGET_HEIGHT_PX
 
         // Update the activity's resources with the new display metrics
+        val resources = activity.resources
+        resources.displayMetrics.setTo(displayMetrics)
+    }
+
+
+    // Reset the display metrics to the device's default values for Smart TV
+    fun resetDisplayMetrics(activity: Activity) {
+        val displayMetrics = DisplayMetrics()
+        activity.windowManager.defaultDisplay.getMetrics(displayMetrics)
+
+        // Update the activity's resources with the default display metrics
         val resources = activity.resources
         resources.displayMetrics.setTo(displayMetrics)
     }

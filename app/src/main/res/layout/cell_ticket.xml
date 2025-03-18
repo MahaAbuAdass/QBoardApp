@@ -9,7 +9,7 @@
     android:layout_marginBottom="3dp">
 
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/card_2_num"
+        android:id="@+id/card_2_num_cell"
         app:strokeColor="@color/white"
         android:layout_width="0dp"
         android:layout_height="match_parent"
@@ -27,6 +27,7 @@
                 android:layout_gravity="center"
                 android:id="@+id/cell_status"
                 android:padding="1dp"
+                android:textStyle="bold"
                 tools:text="ticket #"
                 android:textColor="@color/green"
                 android:textSize="31.5sp"
@@ -37,6 +38,7 @@
     </com.google.android.material.card.MaterialCardView>
 
     <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_1"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_marginStart="5dp"
@@ -52,6 +54,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:gravity="center"
+            android:textStyle="bold"
             android:padding="1dp"
             tools:text="ticket #"
             android:textColor="@color/green"
